@@ -4,7 +4,7 @@
   "private": true,
   "description": "A Zimbabwe curriculum-grounded adaptive Mathematics learning platform (MoPSE Junior Mathematics Syllabus 2024-2030).",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.13.0"
   },
   "scripts": {
     "dev": "next dev",

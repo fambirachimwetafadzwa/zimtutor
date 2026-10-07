@@ -1,0 +1,105 @@
+{
+  "document_id": "mopse-junior-mathematics-2024-2030",
+  "text_fixes": [
+    {
+      "page": 23,
+      "match": "Breaking down amounts into smaller denominations such as $10.00 ={$5.00; $2.00; $2.00;$1.00}",
+      "text": "Breaking down amounts into smaller denominations such as $10.00 ={$5.00; $2.00; $2.00;$1.00}",
+      "reason": "Word equation object: extraction is not trusted until a person has compared it with the page. It matched the print exactly.",
+      "verified": "Compared with the rendered page 23 image at 85 dpi: printed text is identical to the extraction."
+    },
+    {
+      "page": 40,
+      "match": "Forming mixed numbers by putting together wholes and fractions 3 and 1 4 written as 3 1 4",
+      "text": "Forming mixed numbers by putting together wholes and fractions 3 and 1/4 written as 3 1/4",
+      "reason": "Stacked fractions flattened by extraction: the numerator and denominator of 1/4 ran together as '14'.",
+      "verified": "Compared with the rendered page 40 image at 110 dpi: printed as '3 and one-quarter written as 3 one-quarter' (stacked fraction)."
+    },
+    {
+      "page": 41,
+      "match": "Finding percentages equivalent to: 1 2 , 1 4 , 1 5 , and 1 10",
+      "text": "Finding percentages equivalent to: 1/2, 1/4, 1/5, and 1/10",
+      "reason": "Stacked fractions flattened by extraction ('1 2' is one-half, '1 10' is one-tenth).",
+      "verified": "Compared with the rendered page 41 image at 110 dpi: printed as the stacked fractions 1/2, 1/4, 1/5 and 1/10."
+    },
+    {
+      "page": 42,
+      "match": "Working out problems involving the commutative law (10+7=17↔7+10=17)",
+      "text": "Working out problems involving the commutative law (10+7=17↔7+10=17)",
+      "reason": "Word equation object containing an arrow symbol: extraction is not trusted until a person has compared it with the page. It matched the print exactly.",
+      "verified": "Compared with the rendered page 42 image at 85 dpi: printed text is identical to the extraction."
+    },
+    {
+      "page": 44,
+      "match": "Dividing decimals by one digit number for example 3,96÷3=1,32 or 2,5÷5=0,5",
+      "text": "Dividing decimals by one digit number for example 3,96÷3=1,32 or 2,5÷5=0,5",
+      "reason": "Word equation object containing division signs: extraction is not trusted until a person has compared it with the page. It matched the print exactly. Note the syllabus writes decimals with a comma.",
+      "verified": "Compared with the rendered page 44 image at 85 dpi: printed text is identical to the extraction."
+    },
+    {
+      "page": 45,
+      "match": "iii) 1 ordinary year = 36541 days",
+      "text": "1 ordinary year = 365 1/4 days",
+      "reason": "Mixed number flattened by extraction: '36541' is three hundred and sixty-five and one-quarter, not thirty-six thousand five hundred and forty-one.",
+      "verified": "Compared with the rendered page 45 image at 110 dpi: printed as 365 with a stacked 1/4."
+    },
+    {
+      "page": 47,
+      "match": "Deducing the formulae for calculating area of squares, rectangles and triangles to come up to: - Area of square = Side x Side - Area of rectangle = Length x Width - Area of Triangle = 𝐵𝑎𝑠𝑒 𝑥 𝐻𝑒𝑖𝑔ℎ𝑡21",
+      "text": "Deducing the formulae for calculating area of squares, rectangles and triangles to come up to: Area of square = Side x Side, Area of rectangle = Length x Width, Area of Triangle = 1/2 Base x Height",
+      "reason": "Equation flattened by extraction: 'Base x Height' followed by '21' is one-half times base times height.",
+      "verified": "Compared with the rendered page 47-48 images: the list continues onto page 48, where it is printed as 'Area of Triangle = (stacked 1/2) Base x Height'."
+    },
+    {
+      "page": 51,
+      "match": "Presenting fractions in equivalent form 2 6 = 1 3",
+      "text": "Presenting fractions in equivalent form 2/6 = 1/3",
+      "reason": "Stacked fractions flattened by extraction.",
+      "verified": "Compared with the rendered page 51 image at 110 dpi: printed as the stacked fractions 2/6 = 1/3."
+    },
+    {
+      "page": 59,
+      "match": "Using the following conversions: - 60minutes = 1 hour - 24 hours = 1 day - 7 days = 1 week - 36541 days = 1 ordinary year - 366 𝑑𝑎𝑦𝑠 = 1 𝑙𝑒𝑎𝑝 𝑦𝑒𝑎𝑟 - 10 years = 1 decade - 100 years = 1 century",
+      "text": "Using the following conversions: 60minutes = 1 hour, 24 hours = 1 day, 7 days = 1 week, 365 1/4 days = 1 ordinary year, 366 days = 1 leap year, 10 years = 1 decade, 100 years = 1 century",
+      "reason": "Mixed number flattened by extraction ('36541' is 365 and one-quarter) and an italic math-font line ('366 days = 1 leap year') extracted as mathematical-alphabet letters. '60minutes' keeps the source's own spacing.",
+      "verified": "Compared with the rendered page 59 image at 110 dpi."
+    },
+    {
+      "page": 61,
+      "match": "Use of the formula such as 𝑆 = 𝐷 𝑇 D = D×T T = 𝐷 𝑆",
+      "text": "Use of the formula such as S = D/T; D = D×T; T = D/S",
+      "reason": "Stacked fractions flattened by extraction (S = D over T; T = D over S). The middle formula is printed exactly as 'D = D×T' in the source: see the erratum below.",
+      "verified": "Compared with the rendered page 61 image at 110 dpi: three lines, S = D/T (stacked), D = D×T, T = D/S (stacked)."
+    },
+    {
+      "page": 61,
+      "match": "Applying the formulae: - Area of square = Side x Side - Area of rectangle = Length x Width - Area of Triangle = 1 2 𝑏𝑎𝑠𝑒 × ℎ𝑒𝑖𝑔ℎ𝑡 = 𝑏𝑎𝑠𝑒×ℎ𝑒𝑖𝑔ℎ𝑡 2",
+      "text": "Applying the formulae: Area of square = Side x Side, Area of rectangle = Length x Width, Area of Triangle = 1/2 base × height = (base × height) / 2",
+      "reason": "Equations flattened by extraction: '12 base × height' is one-half times base times height, and the next line is base × height over 2.",
+      "verified": "Compared with the rendered page 61 image at 110 dpi: '= (stacked 1/2) base × height' then '= (stacked base×height over 2)'."
+    }
+  ],
+  "joins": [
+    {
+      "page": 40,
+      "first": "Giving values of digits in numbers up to 3 decimal places with not more",
+      "second": "than 5 digits",
+      "reason": "The source accidentally broke one sentence into two bullets ('...with not more' / 'than 5 digits'); the second bullet alone is meaningless.",
+      "verified": "Compared with the rendered page 40 image at 100 dpi: two consecutive bullets, the second beginning 'than 5 digits'."
+    }
+  ],
+  "errata": [
+    {
+      "page": 61,
+      "match": "Use of the formula such as 𝑆 = 𝐷 𝑇 D = D×T T = 𝐷 𝑆",
+      "issue": "The syllabus prints the rate formula as 'D = D×T', which repeats D on both sides.",
+      "probable_intent": "D = S×T (distance = speed × time), consistent with S = D/T and T = D/S on the same line."
+    },
+    {
+      "page": 76,
+      "match": "convert fractions of revolutions to degrees0",
+      "issue": "The syllabus prints a stray character 'degrees0' at the end of this objective.",
+      "probable_intent": "convert fractions of revolutions to degrees (the degree sign was probably intended)."
+    }
+  ]
+}

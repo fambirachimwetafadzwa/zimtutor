@@ -29,7 +29,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck
+      # The committed curriculum snapshot must be exactly what the pipeline extracts from the PDF.
+      - run: npm run curriculum:extract -- --check
+      - run: npm run curriculum:validate
       - run: npm run test
       - run: npm run build

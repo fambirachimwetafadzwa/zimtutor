@@ -34,17 +34,113 @@ Official Curriculum → Learning Objective → Explanation → Guided Practice �
 Next.js (App Router) · TypeScript (strict) · Tailwind CSS · Supabase (Postgres, Auth, Storage,
 pgvector) · Vercel · Sentry · PostHog · provider-abstracted LLM layer.
 
+## Getting started
+
+Requirements: Node ≥ 22.13 and a PostgreSQL 15+ database with the `pgvector` extension — a Supabase
+project (cloud or local) provides both, plus Auth and Storage.
+
+```bash
+npm ci
+cp .env.example .env.local        # fill in the Supabase URL/keys and DATABASE_URL
+npm run db:migrate                # schema, constraints, row-level security
+npm run curriculum:load           # the syllabus: 5 grades · 20 topics · 142 sub-topics · 444 objectives
+npm run curriculum:embed          # retrieval embeddings (offline `local-hash` by default)
+npm run curriculum:audit -- --snapshot --require-embeddings
+npm run dev
+```
+
+The first administrator signs up like a parent, then is promoted out-of-band (roles can never be
+chosen from the browser): `npm run admin:promote -- you@example.com`.
+
 ## Commands
 
-| Command                      | Purpose                                                          |
-| ---------------------------- | ---------------------------------------------------------------- |
-| `npm run dev`                | Start the web app                                                |
-| `npm run check`              | Lint + typecheck + tests + production build (the CI gate)        |
-| `npm run curriculum:extract` | PDF → validated, provenance-rich curriculum snapshot (JSON)      |
-| `npm run curriculum:validate`| Validate a snapshot (fails loudly on any invalid relationship)   |
-| `npm run curriculum:load`    | Load a validated snapshot into Postgres (atomic, stable IDs)     |
-| `npm run curriculum:embed`   | Build RAG chunk embeddings into pgvector                         |
-| `npm run db:migrate`         | Apply SQL migrations to `DATABASE_URL`                           |
+| Command                       | Purpose                                                                           |
+| ----------------------------- | --------------------------------------------------------------------------------- |
+| `npm run dev`                 | Start the web app                                                                 |
+| `npm run check`               | Lint + typecheck + tests + production build (the CI gate)                         |
+| `npm run curriculum:extract`  | PDF → validated, provenance-rich curriculum snapshot (JSON)                       |
+| `npm run curriculum:validate` | Validate a snapshot file (fails loudly on any invalid relationship)               |
+| `npm run curriculum:load`     | Load the snapshot into Postgres: atomic, repeatable, refuses silent changes       |
+| `npm run curriculum:embed`    | Build RAG chunk embeddings into pgvector (idempotent, resumable)                  |
+| `npm run curriculum:audit`    | Audit the curriculum **as stored in the database** (orphans, provenance, chunks…) |
+| `npm run db:migrate`          | Apply SQL migrations to `DATABASE_URL`                                            |
+| `npm run admin:promote`       | Make an existing parent account an administrator (needs database access)          |
+
+Database tests run against a real PostgreSQL + pgvector when `TEST_DATABASE_URL` points at a
+superuser connection (CI does this); without it they are skipped.
+
+## The curriculum data model
+
+The syllabus prints, for every sub-topic, a table of rows: **Objectives · Content · Suggested notes
+and activities · Suggested resources**. The four cells of a row are parallel bullet lists — the
+printed document does **not** pair an objective with a particular content bullet. The model
+therefore keeps the printed row as an entity instead of inventing relationships:
+
+```
+curricula → grades (3–7)
+         → subjects (Mathematics)
+              └─ topics            per grade: Number · Operations · Measures · Relationships
+                  └─ subtopics
+                      └─ competency_rows        one printed row of the competency matrix
+                          ├─ learning_objectives     one bullet of OBJECTIVES — the unit of mastery
+                          ├─ curriculum_content      bullets of CONTENT
+                          ├─ curriculum_activities   bullets of SUGGESTED NOTES AND ACTIVITIES
+                          └─ curriculum_resources    bullets of SUGGESTED RESOURCES
+```
+
+`v_objective_content`, `v_objective_activities` and `v_objective_resources` give the per-objective
+view (every objective of a row shares that row's bullets) without losing the original structure.
+
+- **Stable ids** — `G5-NUM-PROPER-FRACTIONS-004` is derived only from grade, topic, sub-topic wording and
+  order, so re-ingesting the same document reproduces them and learner progress stays attached. They
+  are _application_ identifiers, never presented as Ministry identifiers.
+- **Provenance on every record** — `source_document_id`, `source_page`, printed `source_page_label`,
+  verbatim `source_text`, `source_type = OFFICIAL_CURRICULUM`, `verification_status =
+VERIFIED_FROM_SOURCE`. Database `CHECK` constraints forbid anything else in the official tables, and
+  forbid AI-generated content from ever being `VERIFIED_FROM_SOURCE`.
+- **Assessment (syllabus §9)** is data too: the 20 % school-based continuous assessment / 80 %
+  summative split, the Grade 7 paper structures, the specification grid, the 11 assessment objectives
+  and the six project stages.
+
+## Curriculum ingestion
+
+```
+PDF ─► tagged structure tree + text geometry ─► sub-topics / rows / bullets ─► reviewed overrides
+   ─► deterministic JSON snapshot ─► validation ─► atomic DB load ─► retrieval chunks ─► embeddings
+```
+
+1. **Extract** (`curriculum:extract`) reads the PDF's tagged structure (tables, lists) with pdf.js and
+   assigns text to columns by geometry. Every character of the matrix pages is accounted for in a
+   ledger; extraction fails if anything is dropped or ambiguous. The output
+   (`curriculum/snapshots/…json`) contains no timestamps, so re-running on the same PDF is
+   byte-identical (tested).
+2. **Overrides** (`curriculum/overrides/…json`) are the only way to change extracted text: Word
+   equations and stacked fractions are flattened by the PDF (`3654¹` for 365 ¼). Each fix names the page,
+   the exact text it replaces and how a person verified it against the rendered page; stale fixes fail
+   the run. Printed mistakes in the syllabus are recorded as _errata_ and **not** silently corrected.
+3. **Validate** (`curriculum:validate`) checks missing grades/topics/sub-topics, orphaned records,
+   duplicate ids, missing source pages, wrong grade/topic relationships, ordinal gaps and the
+   assessment arithmetic.
+4. **Load** (`curriculum:load`) — one transaction; upserts by stable id; then runs the database audit
+   and **rolls everything back** if it finds an error.
+5. **Embed** (`curriculum:embed`) — one chunk per objective (objective + its row's content, activities
+   and resources) plus scope-and-sequence and assessment/preamble chunks, each carrying grade,
+   subject, topic, sub-topic, objective id and page, so retrieval filters on metadata _before_ ranking.
+
+### Re-ingesting safely
+
+Learner progress is keyed by objective id, so `curriculum:load` **refuses** (exit code 2) to:
+reword an existing objective, move one, remove one, revive a retired one, or accept a different PDF
+under the same document id — and prints exactly what would change. After reviewing, re-run with
+`--accept-changes`. Objectives that leave the syllabus are **retired, never deleted** (`retired_at`),
+along with their questions; mastery history survives. `--dry-run` shows the plan without writing.
+
+### How the extraction was verified
+
+Beyond unit tests (see `tests/ingestion/`), the extraction was checked against independent
+evidence: poppler's `pdftotext` and the snapshot agree on every character of the matrix pages
+(65 996 = 65 996, both directions); an independent implementation using different libraries
+(pikepdf + pdfplumber) reproduces all 444 objectives per grade/topic; and pages were compared visually.
 
 ## Repository layout
 
@@ -53,8 +149,8 @@ curriculum/source/      the official PDF + manifest (identity + checksum)
 curriculum/overrides/   reviewed, audited corrections (e.g. maths notation the PDF flattens)
 curriculum/snapshots/   generated curriculum snapshot (reviewable in diffs)
 supabase/migrations/    SQL schema, RLS policies
-src/ingestion/          PDF → snapshot pipeline (pure, unit-tested stages)
-src/lib/                domain logic (mastery, marking, tutor, adaptive, rag, ai, ...)
+src/ingestion/          PDF → snapshot → database pipeline (pure, unit-tested stages)
+src/lib/                domain logic (auth, db helpers, ai/embeddings, …)
 src/app/                Next.js routes
 scripts/                CLI entry points
 tests/                  unit + database integration tests
