@@ -33,9 +33,16 @@ describe.skipIf(!TEST_DATABASE_URL)("provision_learner_profile", () => {
   it("creates the learner profile and the guardianship together", async () => {
     const id = await createAuthLearner(db, "chipo");
     await db.sql`select public.provision_learner_profile(${id}, ${u.parentA}, 5::smallint, 'chipo')`;
-    const [lp] = await db.sql`select grade, username, created_by, onboarding_completed from public.learner_profiles where profile_id = ${id}`;
-    expect(lp).toMatchObject({ grade: 5, username: "chipo", created_by: u.parentA, onboarding_completed: true });
-    const g = await db.sql`select 1 from public.guardianships where parent_id = ${u.parentA} and learner_id = ${id}`;
+    const [lp] =
+      await db.sql`select grade, username, created_by, onboarding_completed from public.learner_profiles where profile_id = ${id}`;
+    expect(lp).toMatchObject({
+      grade: 5,
+      username: "chipo",
+      created_by: u.parentA,
+      onboarding_completed: true,
+    });
+    const g =
+      await db.sql`select 1 from public.guardianships where parent_id = ${u.parentA} and learner_id = ${id}`;
     expect(g).toHaveLength(1);
   });
 
@@ -45,8 +52,12 @@ describe.skipIf(!TEST_DATABASE_URL)("provision_learner_profile", () => {
       db.sql`select public.provision_learner_profile(${id}, ${u.parentA}, 4::smallint, 'tendai')`, // 'tendai' exists
       "23505",
     );
-    expect(await db.sql`select 1 from public.guardianships where learner_id = ${id}`).toHaveLength(0);
-    expect(await db.sql`select 1 from public.learner_profiles where profile_id = ${id}`).toHaveLength(0);
+    expect(await db.sql`select 1 from public.guardianships where learner_id = ${id}`).toHaveLength(
+      0,
+    );
+    expect(
+      await db.sql`select 1 from public.learner_profiles where profile_id = ${id}`,
+    ).toHaveLength(0);
   });
 
   it("enforces the per-parent learner limit", async () => {
@@ -58,18 +69,30 @@ describe.skipIf(!TEST_DATABASE_URL)("provision_learner_profile", () => {
       db.sql`select public.provision_learner_profile(${b}, ${u.parentB}, 3::smallint, 'limit-b', 2)`,
       "ZT001",
     );
-    expect(await db.sql`select 1 from public.learner_profiles where profile_id = ${b}`).toHaveLength(0);
+    expect(
+      await db.sql`select 1 from public.learner_profiles where profile_id = ${b}`,
+    ).toHaveLength(0);
   });
 
   it("holds the limit under concurrent requests", async () => {
     const parent = randomUUID();
     await db.sql`insert into auth.users (id, email) values (${parent}, 'race@example.test')`;
-    const ids = await Promise.all(["racer1", "racer2", "racer3", "racer4", "racer5", "racer6"].map((n) => createAuthLearner(db, n)));
+    const ids = await Promise.all(
+      ["racer1", "racer2", "racer3", "racer4", "racer5", "racer6"].map((n) =>
+        createAuthLearner(db, n),
+      ),
+    );
     const results = await Promise.allSettled(
-      ids.map((id, i) => db.sql`select public.provision_learner_profile(${id}, ${parent}, 3::smallint, ${"racer" + (i + 1)}, 3)`),
+      ids.map(
+        (id, i) =>
+          db.sql`select public.provision_learner_profile(${id}, ${parent}, 3::smallint, ${"racer" + (i + 1)}, 3)`,
+      ),
     );
     expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(3);
-    const [{ n }] = (await db.sql`select count(*)::int as n from public.guardianships where parent_id = ${parent}`) as unknown as [{ n: number }];
+    const [{ n }] =
+      (await db.sql`select count(*)::int as n from public.guardianships where parent_id = ${parent}`) as unknown as [
+        { n: number },
+      ];
     expect(n).toBe(3);
   });
 
@@ -111,10 +134,14 @@ describe.skipIf(!TEST_DATABASE_URL)("provision_learner_profile", () => {
   it("is callable only by the service role", async () => {
     const id = await createAuthLearner(db, "forbidden");
     await asUser(db.sql, { userId: u.parentA }, async (tx) => {
-      await expectPgError(tx`select public.provision_learner_profile(${id}, ${u.parentA}, 3::smallint, 'forbidden')`);
+      await expectPgError(
+        tx`select public.provision_learner_profile(${id}, ${u.parentA}, 3::smallint, 'forbidden')`,
+      );
     });
     await asUser(db.sql, "anon", async (tx) => {
-      await expectPgError(tx`select public.provision_learner_profile(${id}, ${u.parentA}, 3::smallint, 'forbidden')`);
+      await expectPgError(
+        tx`select public.provision_learner_profile(${id}, ${u.parentA}, 3::smallint, 'forbidden')`,
+      );
     });
     await asService(db.sql, async (tx) => {
       await tx`select public.provision_learner_profile(${id}, ${u.parentA}, 3::smallint, 'forbidden')`;

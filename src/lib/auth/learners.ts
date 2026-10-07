@@ -27,7 +27,11 @@ export class PortError extends Error {
 }
 
 export interface LearnerProvisioningPorts {
-  createAuthUser(input: { email: string; password: string; displayName: string }): Promise<{ id: string }>;
+  createAuthUser(input: {
+    email: string;
+    password: string;
+    displayName: string;
+  }): Promise<{ id: string }>;
   deleteAuthUser(id: string): Promise<void>;
   provisionProfile(input: {
     learnerId: string;
@@ -56,7 +60,10 @@ export async function provisionLearner(
       displayName: input.displayName,
     });
   } catch (error) {
-    if (error instanceof PortError && (error.failure === "USER_EXISTS" || error.failure === "USERNAME_TAKEN")) {
+    if (
+      error instanceof PortError &&
+      (error.failure === "USER_EXISTS" || error.failure === "USERNAME_TAKEN")
+    ) {
       return { ok: false, error: "USERNAME_TAKEN" };
     }
     return { ok: false, error: "UNKNOWN" };
@@ -78,7 +85,8 @@ export async function provisionLearner(
       onCompensationFailure(created.id, cleanupError);
     }
     if (error instanceof PortError) {
-      if (error.failure === "LEARNER_LIMIT_REACHED") return { ok: false, error: "LEARNER_LIMIT_REACHED" };
+      if (error.failure === "LEARNER_LIMIT_REACHED")
+        return { ok: false, error: "LEARNER_LIMIT_REACHED" };
       if (error.failure === "USERNAME_TAKEN" || error.failure === "USER_EXISTS") {
         return { ok: false, error: "USERNAME_TAKEN" };
       }

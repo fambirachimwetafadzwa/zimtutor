@@ -21,7 +21,9 @@ async function main() {
   const sql = postgres(url, { max: 1, onnotice: () => {} });
   try {
     const applied = await applyMigrations(sql, path.resolve("supabase/migrations"), console.log);
-    console.log(applied.length === 0 ? "Database is up to date." : `Applied ${applied.length} migration(s).`);
+    console.log(
+      applied.length === 0 ? "Database is up to date." : `Applied ${applied.length} migration(s).`,
+    );
   } finally {
     await sql.end();
   }

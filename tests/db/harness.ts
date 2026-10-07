@@ -94,7 +94,9 @@ export async function expectPgError(promise: PromiseLike<unknown>, code = "42501
   } catch (error) {
     const actual = (error as { code?: string }).code;
     if (actual === code) return;
-    throw new Error(`Expected Postgres error ${code} but got ${actual}: ${(error as Error).message}`);
+    throw new Error(
+      `Expected Postgres error ${code} but got ${actual}: ${(error as Error).message}`,
+    );
   }
   throw new Error(`Expected Postgres error ${code} but the statement succeeded`);
 }

@@ -15,7 +15,8 @@ export async function createSupabaseServerClient() {
       getAll: () => cookieStore.getAll(),
       setAll: (cookiesToSet) => {
         try {
-          for (const { name, value, options } of cookiesToSet) cookieStore.set(name, value, options);
+          for (const { name, value, options } of cookiesToSet)
+            cookieStore.set(name, value, options);
         } catch {
           // Called from a Server Component, where cookies are read-only. The proxy refreshes
           // sessions on every request, so ignoring this is safe.

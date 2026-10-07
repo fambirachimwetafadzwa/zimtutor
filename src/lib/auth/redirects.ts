@@ -6,10 +6,7 @@ const MAX_LENGTH = 300;
 
 const FORBIDDEN = /[\u0000-\u001f\u007f\\]/;
 
-export function safeRedirectPath(
-  candidate: string | null | undefined,
-  fallback = "/",
-): string {
+export function safeRedirectPath(candidate: string | null | undefined, fallback = "/"): string {
   if (!candidate) return fallback;
   if (candidate.length > MAX_LENGTH) return fallback;
   if (FORBIDDEN.test(candidate)) return fallback;

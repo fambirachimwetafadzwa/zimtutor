@@ -16,9 +16,9 @@ export default async function HomePage() {
           Mathematics for Grades 3–7, taught the way the Zimbabwe syllabus teaches it.
         </h1>
         <p className="text-xl text-muted">
-          ZimTutor follows the Ministry of Primary and Secondary Education&apos;s Junior Mathematics Syllabus
-          (2024–2030). It teaches one learning objective at a time, helps children think rather than just
-          giving answers, and moves on only when they are ready.
+          ZimTutor follows the Ministry of Primary and Secondary Education&apos;s Junior Mathematics
+          Syllabus (2024–2030). It teaches one learning objective at a time, helps children think
+          rather than just giving answers, and moves on only when they are ready.
         </p>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">

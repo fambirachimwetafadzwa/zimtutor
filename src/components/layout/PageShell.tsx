@@ -12,7 +12,15 @@ export function Wordmark() {
 }
 
 /** Centered narrow card used by sign-in, sign-up and similar single-task pages. */
-export function CardPage({ title, intro, children }: { title: string; intro?: string; children: ReactNode }) {
+export function CardPage({
+  title,
+  intro,
+  children,
+}: {
+  title: string;
+  intro?: string;
+  children: ReactNode;
+}) {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center gap-6 px-5 py-10">
       <Wordmark />
@@ -26,7 +34,13 @@ export function CardPage({ title, intro, children }: { title: string; intro?: st
 }
 
 /** Header for signed-in areas. */
-export function AppHeader({ user, nav = [] }: { user: CurrentUser; nav?: { href: string; label: string }[] }) {
+export function AppHeader({
+  user,
+  nav = [],
+}: {
+  user: CurrentUser;
+  nav?: { href: string; label: string }[];
+}) {
   return (
     <header className="border-b border-border bg-surface">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-5 py-3">

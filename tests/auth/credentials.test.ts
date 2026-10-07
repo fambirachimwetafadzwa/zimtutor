@@ -42,7 +42,17 @@ describe("usernames", () => {
   });
 
   it("rejects usernames the database would reject", () => {
-    for (const bad of ["ab", "", "a".repeat(25), "-abc", ".abc", "has space", "émile", "a@b", "x;drop"]) {
+    for (const bad of [
+      "ab",
+      "",
+      "a".repeat(25),
+      "-abc",
+      ".abc",
+      "has space",
+      "émile",
+      "a@b",
+      "x;drop",
+    ]) {
       expect(usernameSchema.safeParse(bad).success, bad).toBe(false);
     }
   });
@@ -66,7 +76,14 @@ describe("display names (shown to children) cannot carry contact details", () =>
   });
 
   it("rejects emails, links and phone numbers", () => {
-    for (const bad of ["tendai@gmail.com", "call me 0771234567", "+263 77 123 4567", "www.site.com", "http://x", "me.com"]) {
+    for (const bad of [
+      "tendai@gmail.com",
+      "call me 0771234567",
+      "+263 77 123 4567",
+      "www.site.com",
+      "http://x",
+      "me.com",
+    ]) {
       expect(looksLikeContactDetails(bad), bad).toBe(true);
       expect(displayNameSchema.safeParse(bad).success, bad).toBe(false);
     }
@@ -82,28 +99,44 @@ describe("display names (shown to children) cannot carry contact details", () =>
 describe("grades", () => {
   it("accepts 3 to 7 (including form-encoded strings) and nothing else", () => {
     for (const g of [3, 4, 5, 6, 7, "5"]) expect(gradeSchema.safeParse(g).success).toBe(true);
-    for (const g of [2, 8, 3.5, "abc", "", null, -1]) expect(gradeSchema.safeParse(g).success, String(g)).toBe(false);
+    for (const g of [2, 8, 3.5, "abc", "", null, -1])
+      expect(gradeSchema.safeParse(g).success, String(g)).toBe(false);
   });
 });
 
 describe("forms", () => {
   it("requires a guardian to affirm responsibility when signing up", () => {
-    const base = { displayName: "Mai Tendai", email: "mai@example.com", password: "blue mango tree" };
+    const base = {
+      displayName: "Mai Tendai",
+      email: "mai@example.com",
+      password: "blue mango tree",
+    };
     expect(parentSignUpSchema.safeParse({ ...base, isGuardian: "on" }).success).toBe(true);
     expect(parentSignUpSchema.safeParse(base).success).toBe(false);
     expect(parentSignUpSchema.safeParse({ ...base, isGuardian: "off" }).success).toBe(false);
   });
 
   it("validates a new learner, including that the password differs from the username", () => {
-    const ok = { displayName: "Tendai", username: "Tendai7", password: "blue mango tree", grade: "4" };
+    const ok = {
+      displayName: "Tendai",
+      username: "Tendai7",
+      password: "blue mango tree",
+      grade: "4",
+    };
     const parsed = createLearnerSchema.parse(ok);
     expect(parsed).toMatchObject({ username: "tendai7", grade: 4 });
-    expect(createLearnerSchema.safeParse({ ...ok, password: "tendai7tendai7".slice(0, 7) }).success).toBe(false);
-    expect(createLearnerSchema.safeParse({ ...ok, username: "abcdefgh", password: "ABCDEFGH" }).success).toBe(false);
+    expect(
+      createLearnerSchema.safeParse({ ...ok, password: "tendai7tendai7".slice(0, 7) }).success,
+    ).toBe(false);
+    expect(
+      createLearnerSchema.safeParse({ ...ok, username: "abcdefgh", password: "ABCDEFGH" }).success,
+    ).toBe(false);
     expect(createLearnerSchema.safeParse({ ...ok, grade: "9" }).success).toBe(false);
   });
 
   it("normalises learner sign-in usernames", () => {
-    expect(learnerSignInSchema.parse({ username: " Tendai ", password: "x" }).username).toBe("tendai");
+    expect(learnerSignInSchema.parse({ username: " Tendai ", password: "x" }).username).toBe(
+      "tendai",
+    );
   });
 });

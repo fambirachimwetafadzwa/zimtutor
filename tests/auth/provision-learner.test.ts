@@ -40,7 +40,10 @@ describe("provisionLearner", () => {
         throw new PortError("USER_EXISTS");
       }),
     });
-    expect(await provisionLearner(p, "parent-1", input)).toEqual({ ok: false, error: "USERNAME_TAKEN" });
+    expect(await provisionLearner(p, "parent-1", input)).toEqual({
+      ok: false,
+      error: "USERNAME_TAKEN",
+    });
     expect(p.provisionProfile).not.toHaveBeenCalled();
     expect(p.deleteAuthUser).not.toHaveBeenCalled();
   });
@@ -61,7 +64,10 @@ describe("provisionLearner", () => {
         throw new PortError("LEARNER_LIMIT_REACHED");
       }),
     });
-    expect(await provisionLearner(p, "parent-1", input)).toEqual({ ok: false, error: "LEARNER_LIMIT_REACHED" });
+    expect(await provisionLearner(p, "parent-1", input)).toEqual({
+      ok: false,
+      error: "LEARNER_LIMIT_REACHED",
+    });
     expect(p.deleteAuthUser).toHaveBeenCalledWith("learner-1");
   });
 
@@ -71,7 +77,10 @@ describe("provisionLearner", () => {
         throw new PortError("USERNAME_TAKEN");
       }),
     });
-    expect(await provisionLearner(p, "parent-1", input)).toEqual({ ok: false, error: "USERNAME_TAKEN" });
+    expect(await provisionLearner(p, "parent-1", input)).toEqual({
+      ok: false,
+      error: "USERNAME_TAKEN",
+    });
     expect(p.deleteAuthUser).toHaveBeenCalledWith("learner-1");
   });
 

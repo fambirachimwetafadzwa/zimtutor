@@ -18,7 +18,10 @@ export default async function SignUpPage() {
       intro="Parents and guardians sign up first, then create accounts for their children."
     >
       {!isPublicEnvConfigured() ? (
-        <p role="alert" className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
+        <p
+          role="alert"
+          className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900"
+        >
           Sign-up isn&apos;t set up on this server yet.
         </p>
       ) : (
@@ -26,7 +29,10 @@ export default async function SignUpPage() {
           <SignUpForm />
           <p className="text-base text-muted">
             Already have an account?{" "}
-            <Link href="/login?who=parent" className="font-semibold text-brand underline underline-offset-4">
+            <Link
+              href="/login?who=parent"
+              className="font-semibold text-brand underline underline-offset-4"
+            >
               Sign in
             </Link>
             . Read our{" "}

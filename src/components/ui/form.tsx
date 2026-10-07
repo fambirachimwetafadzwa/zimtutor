@@ -73,7 +73,9 @@ export function FormMessage({ error, message }: { error?: string; message?: stri
     <p
       role={error ? "alert" : "status"}
       className={`rounded-xl border px-4 py-3 text-base ${
-        error ? "border-red-300 bg-red-50 text-red-800" : "border-emerald-300 bg-emerald-50 text-emerald-900"
+        error
+          ? "border-red-300 bg-red-50 text-red-800"
+          : "border-emerald-300 bg-emerald-50 text-emerald-900"
       }`}
     >
       {error ?? message}

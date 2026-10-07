@@ -47,7 +47,9 @@ function blankToUndefined(value: string | undefined): string | undefined {
 }
 
 function fail(scope: string, error: z.ZodError, names: Record<string, string>): never {
-  const missing = [...new Set(error.issues.map((i) => names[String(i.path[0])] ?? String(i.path[0])))];
+  const missing = [
+    ...new Set(error.issues.map((i) => names[String(i.path[0])] ?? String(i.path[0]))),
+  ];
   throw new EnvError(`Invalid ${scope} environment configuration: ${missing.join(", ")}`, missing);
 }
 

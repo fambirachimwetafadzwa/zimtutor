@@ -1,10 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import {
-  createTestDatabase,
-  expectPgError,
-  TEST_DATABASE_URL,
-  type TestDatabase,
-} from "./harness";
+import { createTestDatabase, expectPgError, TEST_DATABASE_URL, type TestDatabase } from "./harness";
 import { HASH, seedMiniCurriculum, seedUsers, type TestUsers } from "./fixtures";
 
 const CHECK_VIOLATION = "23514";
@@ -136,7 +131,8 @@ describe.skipIf(!TEST_DATABASE_URL)("database schema integrity", () => {
     });
 
     it("exposes full provenance for auditing through v_objective_context", async () => {
-      const [row] = await db.sql`select * from public.v_objective_context where objective_id = 'G3-NUM-PLACE-VALUE-001'`;
+      const [row] =
+        await db.sql`select * from public.v_objective_context where objective_id = 'G3-NUM-PLACE-VALUE-001'`;
       expect(row).toMatchObject({
         grade: 3,
         topic_code: "NUM",
@@ -153,7 +149,8 @@ describe.skipIf(!TEST_DATABASE_URL)("database schema integrity", () => {
     });
 
     it("shares a row's content with each of its objectives (per-objective views)", async () => {
-      const rows = await db.sql`select objective_id from public.v_objective_content order by objective_id`;
+      const rows =
+        await db.sql`select objective_id from public.v_objective_content order by objective_id`;
       expect(rows.map((r) => r.objective_id)).toEqual([
         "G3-NUM-PLACE-VALUE-001",
         "G3-NUM-PLACE-VALUE-002",

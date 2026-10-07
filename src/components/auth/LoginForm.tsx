@@ -26,7 +26,13 @@ export function LoginForm({ mode, next }: { mode: "learner" | "parent"; next: st
       ) : (
         <Field label="Email address" name="email" type="email" autoComplete="email" required />
       )}
-      <Field label="Password" name="password" type="password" autoComplete="current-password" required />
+      <Field
+        label="Password"
+        name="password"
+        type="password"
+        autoComplete="current-password"
+        required
+      />
       <FormMessage error={state.error} />
       <SubmitButton pendingLabel="Signing in…">Sign in</SubmitButton>
     </form>

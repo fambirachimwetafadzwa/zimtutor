@@ -21,7 +21,14 @@ export function SignUpForm() {
         hint="Please don't use a full name or contact details."
         required
       />
-      <Field label="Email address" name="email" type="email" autoComplete="email" error={errors.email} required />
+      <Field
+        label="Email address"
+        name="email"
+        type="email"
+        autoComplete="email"
+        error={errors.email}
+        required
+      />
       <Field
         label="Password"
         name="password"

@@ -36,8 +36,12 @@ export default async function ParentHome({ searchParams }: { searchParams: Searc
         </Link>
       </div>
       {added ? (
-        <p role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900">
-          Learner account created. Your child can sign in with the username <strong>{added}</strong>.
+        <p
+          role="status"
+          className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900"
+        >
+          Learner account created. Your child can sign in with the username <strong>{added}</strong>
+          .
         </p>
       ) : null}
       {(learners ?? []).length === 0 ? (
@@ -47,10 +51,16 @@ export default async function ParentHome({ searchParams }: { searchParams: Searc
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2">
           {(learners ?? []).map((l) => (
-            <li key={l.profile_id as string} className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-              <p className="text-xl font-semibold">{nameById.get(l.profile_id as string) ?? "Learner"}</p>
+            <li
+              key={l.profile_id as string}
+              className="rounded-2xl border border-border bg-surface p-5 shadow-sm"
+            >
+              <p className="text-xl font-semibold">
+                {nameById.get(l.profile_id as string) ?? "Learner"}
+              </p>
               <p className="text-muted">
-                Grade {l.grade as number} · username <span className="font-mono">{l.username as string}</span>
+                Grade {l.grade as number} · username{" "}
+                <span className="font-mono">{l.username as string}</span>
               </p>
             </li>
           ))}

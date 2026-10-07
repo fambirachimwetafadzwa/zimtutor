@@ -19,7 +19,10 @@ export default async function StudentHome() {
       </section>
       <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <p className="text-lg">Your lessons are on their way.</p>
-        <Link href="/student/onboarding" className="mt-4 inline-block font-semibold text-brand underline underline-offset-4">
+        <Link
+          href="/student/onboarding"
+          className="mt-4 inline-block font-semibold text-brand underline underline-offset-4"
+        >
           Change my grade
         </Link>
       </section>

@@ -22,7 +22,8 @@ export function createSupabaseProvisioningPorts(): LearnerProvisioningPorts {
         app_metadata: { role: "student" },
       });
       if (error || !data.user) {
-        if (error?.code === "email_exists" || error?.status === 422) throw new PortError("USER_EXISTS");
+        if (error?.code === "email_exists" || error?.status === 422)
+          throw new PortError("USER_EXISTS");
         throw error ?? new Error("createUser returned no user");
       }
       return { id: data.user.id };

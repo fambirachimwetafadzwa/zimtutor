@@ -31,7 +31,16 @@ describe("safeRedirectPath (open-redirect protection)", () => {
   });
 
   it("rejects backslash, control-character and encoded tricks", () => {
-    for (const evil of ["/\\evil.example", "/%5Cevil.example", "/%2F/evil.example", "/%2f%2fevil.example", "/a\nb", "/a\u0000b", "/%00", "/%E0%A4%A"]) {
+    for (const evil of [
+      "/\\evil.example",
+      "/%5Cevil.example",
+      "/%2F/evil.example",
+      "/%2f%2fevil.example",
+      "/a\nb",
+      "/a\u0000b",
+      "/%00",
+      "/%E0%A4%A",
+    ]) {
       expect(safeRedirectPath(evil), JSON.stringify(evil)).toBe("/");
     }
   });

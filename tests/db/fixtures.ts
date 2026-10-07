@@ -14,7 +14,10 @@ export async function seedMiniCurriculum(sql: Sql) {
     values ('cur-1', 'Test Curriculum', 'MoPSE', '2024-2030', 'doc-1')`;
   await sql`insert into public.grades (id, curriculum_id, number, label) values ('G3', 'cur-1', 3, 'Grade 3'), ('G4', 'cur-1', 4, 'Grade 4')`;
   await sql`insert into public.subjects (id, curriculum_id, name) values ('MATH', 'cur-1', 'Mathematics')`;
-  for (const [grade, id] of [["G3", "G3-NUM"], ["G4", "G4-NUM"]] as const) {
+  for (const [grade, id] of [
+    ["G3", "G3-NUM"],
+    ["G4", "G4-NUM"],
+  ] as const) {
     await sql`
       insert into public.topics (id, grade_id, subject_id, code, name, ordinal, section_number, heading_text,
         source_document_id, source_page, source_text)
@@ -57,11 +60,18 @@ export async function seedUsers(sql: Sql): Promise<TestUsers> {
     learnerB: randomUUID(),
     admin: randomUUID(),
   };
-  for (const [key, name] of [["parentA", "Parent A"], ["parentB", "Parent B"], ["admin", "Admin"]] as const) {
+  for (const [key, name] of [
+    ["parentA", "Parent A"],
+    ["parentB", "Parent B"],
+    ["admin", "Admin"],
+  ] as const) {
     await sql`insert into auth.users (id, email, raw_user_meta_data)
               values (${ids[key]}, ${key + "@example.test"}, ${sql.json({ display_name: name })})`;
   }
-  for (const [key, name] of [["learnerA", "Tendai"], ["learnerB", "Rudo"]] as const) {
+  for (const [key, name] of [
+    ["learnerA", "Tendai"],
+    ["learnerB", "Rudo"],
+  ] as const) {
     await sql`insert into auth.users (id, email, raw_user_meta_data, raw_app_meta_data)
               values (${ids[key]}, ${key + "@learners.zimtutor.invalid"}, ${sql.json({ display_name: name })}, ${sql.json({ role: "student" })})`;
   }

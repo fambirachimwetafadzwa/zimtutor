@@ -21,8 +21,8 @@
   --color-surface: var(--surface);
   --color-border: var(--border);
   /* System font stack: no build-time font download, works offline and on low-bandwidth devices. */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    sans-serif;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 body {

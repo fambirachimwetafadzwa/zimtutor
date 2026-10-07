@@ -73,7 +73,9 @@ export async function signUpAction(_previous: FormState, formData: FormData): Pr
 
   if (error) {
     if (error.code === "weak_password") {
-      return { fieldErrors: { password: "That password is too easy to guess. Try a longer phrase." } };
+      return {
+        fieldErrors: { password: "That password is too easy to guess. Try a longer phrase." },
+      };
     }
     if (error.code === "over_email_send_rate_limit" || error.status === 429) {
       return { error: "Too many attempts. Please wait a few minutes and try again." };
@@ -87,7 +89,8 @@ export async function signUpAction(_previous: FormState, formData: FormData): Pr
   // Same message whether or not the address already exists (no account enumeration).
   return {
     ok: true,
-    message: "Almost there! Check your email and follow the link to confirm your address, then sign in.",
+    message:
+      "Almost there! Check your email and follow the link to confirm your address, then sign in.",
   };
 }
 
@@ -103,7 +106,10 @@ const LEARNER_ERRORS = {
   UNKNOWN: "We couldn't create the learner account. Please try again.",
 } as const;
 
-export async function createLearnerAction(_previous: FormState, formData: FormData): Promise<FormState> {
+export async function createLearnerAction(
+  _previous: FormState,
+  formData: FormData,
+): Promise<FormState> {
   // The acting parent comes from the verified session — never from the form.
   const parent = await requireRole("parent", "/parent/learners/new");
 
@@ -115,11 +121,17 @@ export async function createLearnerAction(_previous: FormState, formData: FormDa
   });
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
 
-  const result = await provisionLearner(createSupabaseProvisioningPorts(), parent.id, parsed.data, (id, error) => {
-    console.error("[learner-provisioning] could not remove an orphaned auth user", { id, error });
-  });
+  const result = await provisionLearner(
+    createSupabaseProvisioningPorts(),
+    parent.id,
+    parsed.data,
+    (id, error) => {
+      console.error("[learner-provisioning] could not remove an orphaned auth user", { id, error });
+    },
+  );
   if (!result.ok) {
-    if (result.error === "USERNAME_TAKEN") return { fieldErrors: { username: LEARNER_ERRORS.USERNAME_TAKEN } };
+    if (result.error === "USERNAME_TAKEN")
+      return { fieldErrors: { username: LEARNER_ERRORS.USERNAME_TAKEN } };
     return { error: LEARNER_ERRORS[result.error] };
   }
 

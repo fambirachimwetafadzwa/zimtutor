@@ -73,9 +73,11 @@ describe.skipIf(!TEST_DATABASE_URL)("row-level security and privileges", () => {
 
     it("lets a user rename only themselves", async () => {
       await asUser(db.sql, { userId: u.parentA }, async (tx) => {
-        const mine = await tx`update public.profiles set display_name = 'Renamed' where id = ${u.parentA}`;
+        const mine =
+          await tx`update public.profiles set display_name = 'Renamed' where id = ${u.parentA}`;
         expect(mine.count).toBe(1);
-        const theirs = await tx`update public.profiles set display_name = 'Hacked' where id = ${u.parentB}`;
+        const theirs =
+          await tx`update public.profiles set display_name = 'Hacked' where id = ${u.parentB}`;
         expect(theirs.count).toBe(0);
       });
     });
@@ -95,7 +97,8 @@ describe.skipIf(!TEST_DATABASE_URL)("row-level security and privileges", () => {
       await db.sql`update public.profiles set is_active = false where id = ${u.parentA}`;
       try {
         await asUser(db.sql, { userId: u.parentA }, async (tx) => {
-          const [r] = await tx`select public.is_guardian_of(${u.learnerA}) as g, public.current_app_role() as r`;
+          const [r] =
+            await tx`select public.is_guardian_of(${u.learnerA}) as g, public.current_app_role() as r`;
           expect(r).toEqual({ g: false, r: null });
           const rows = await tx`select profile_id from public.learner_profiles`;
           expect(rows).toHaveLength(0);
@@ -145,14 +148,25 @@ describe.skipIf(!TEST_DATABASE_URL)("row-level security and privileges", () => {
 
     it("lets a guardian (or the learner) change the grade, but never the username or another family's child", async () => {
       await asUser(db.sql, { userId: u.parentA }, async (tx) => {
-        expect((await tx`update public.learner_profiles set grade = 4 where profile_id = ${u.learnerA}`).count).toBe(1);
-        expect((await tx`update public.learner_profiles set grade = 5 where profile_id = ${u.learnerB}`).count).toBe(0);
+        expect(
+          (await tx`update public.learner_profiles set grade = 4 where profile_id = ${u.learnerA}`)
+            .count,
+        ).toBe(1);
+        expect(
+          (await tx`update public.learner_profiles set grade = 5 where profile_id = ${u.learnerB}`)
+            .count,
+        ).toBe(0);
       });
       await asUser(db.sql, { userId: u.learnerA }, async (tx) => {
-        expect((await tx`update public.learner_profiles set grade = 5 where profile_id = ${u.learnerA}`).count).toBe(1);
+        expect(
+          (await tx`update public.learner_profiles set grade = 5 where profile_id = ${u.learnerA}`)
+            .count,
+        ).toBe(1);
       });
       await asUser(db.sql, { userId: u.learnerA }, async (tx) => {
-        await expectPgError(tx`update public.learner_profiles set username = 'changed' where profile_id = ${u.learnerA}`);
+        await expectPgError(
+          tx`update public.learner_profiles set username = 'changed' where profile_id = ${u.learnerA}`,
+        );
       });
     });
 
