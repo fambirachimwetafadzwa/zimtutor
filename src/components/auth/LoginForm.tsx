@@ -17,6 +17,7 @@ export function LoginForm({ mode, next }: { mode: "learner" | "parent"; next: st
         <Field
           label="Your username"
           name="username"
+          defaultValue={state.values?.username}
           autoComplete="username"
           autoCapitalize="none"
           autoCorrect="off"
@@ -24,7 +25,14 @@ export function LoginForm({ mode, next }: { mode: "learner" | "parent"; next: st
           required
         />
       ) : (
-        <Field label="Email address" name="email" type="email" autoComplete="email" required />
+        <Field
+          label="Email address"
+          name="email"
+          type="email"
+          defaultValue={state.values?.email}
+          autoComplete="email"
+          required
+        />
       )}
       <Field
         label="Password"

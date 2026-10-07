@@ -14,7 +14,7 @@ import { provisionLearner } from "@/lib/auth/learners";
 import { createSupabaseProvisioningPorts } from "@/lib/auth/learners.server";
 import { safeRedirectPath } from "@/lib/auth/redirects";
 import { requireRole } from "@/lib/auth/session";
-import { fieldErrorsFrom, formString, type FormState } from "@/lib/forms";
+import { fieldErrorsFrom, formString, submittedValues, type FormState } from "@/lib/forms";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // One message for every sign-in failure: never reveal whether the username/email exists.
@@ -31,7 +31,7 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
       username: formString(formData, "username"),
       password: formString(formData, "password"),
     });
-    if (!parsed.success) return { error: SIGN_IN_FAILED };
+    if (!parsed.success) return { error: SIGN_IN_FAILED, values: submittedValues(formData) };
     email = learnerEmail(parsed.data.username);
     password = parsed.data.password;
   } else {
@@ -39,14 +39,14 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
       email: formString(formData, "email"),
       password: formString(formData, "password"),
     });
-    if (!parsed.success) return { error: SIGN_IN_FAILED };
+    if (!parsed.success) return { error: SIGN_IN_FAILED, values: submittedValues(formData) };
     email = parsed.data.email;
     password = parsed.data.password;
   }
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: SIGN_IN_FAILED };
+  if (error) return { error: SIGN_IN_FAILED, values: submittedValues(formData) };
 
   redirect(next); // outside any try/catch: redirect() works by throwing
 }
@@ -58,7 +58,9 @@ export async function signUpAction(_previous: FormState, formData: FormData): Pr
     password: formString(formData, "password"),
     isGuardian: formString(formData, "isGuardian"),
   });
-  if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
+  if (!parsed.success) {
+    return { fieldErrors: fieldErrorsFrom(parsed.error), values: submittedValues(formData) };
+  }
 
   const supabase = await createSupabaseServerClient();
   const { siteUrl } = readPublicEnv();
@@ -75,12 +77,19 @@ export async function signUpAction(_previous: FormState, formData: FormData): Pr
     if (error.code === "weak_password") {
       return {
         fieldErrors: { password: "That password is too easy to guess. Try a longer phrase." },
+        values: submittedValues(formData),
       };
     }
     if (error.code === "over_email_send_rate_limit" || error.status === 429) {
-      return { error: "Too many attempts. Please wait a few minutes and try again." };
+      return {
+        error: "Too many attempts. Please wait a few minutes and try again.",
+        values: submittedValues(formData),
+      };
     }
-    return { error: "We couldn't create your account. Please try again." };
+    return {
+      error: "We couldn't create your account. Please try again.",
+      values: submittedValues(formData),
+    };
   }
 
   // Email confirmation disabled (local development): the user is already signed in.
@@ -119,7 +128,9 @@ export async function createLearnerAction(
     password: formString(formData, "password"),
     grade: formString(formData, "grade"),
   });
-  if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
+  if (!parsed.success) {
+    return { fieldErrors: fieldErrorsFrom(parsed.error), values: submittedValues(formData) };
+  }
 
   const result = await provisionLearner(
     createSupabaseProvisioningPorts(),
@@ -130,9 +141,10 @@ export async function createLearnerAction(
     },
   );
   if (!result.ok) {
+    const values = submittedValues(formData);
     if (result.error === "USERNAME_TAKEN")
-      return { fieldErrors: { username: LEARNER_ERRORS.USERNAME_TAKEN } };
-    return { error: LEARNER_ERRORS[result.error] };
+      return { fieldErrors: { username: LEARNER_ERRORS.USERNAME_TAKEN }, values };
+    return { error: LEARNER_ERRORS[result.error], values };
   }
 
   redirect(`/parent?added=${encodeURIComponent(result.username)}`);

@@ -94,6 +94,8 @@ describe.skipIf(!configured)("the real Supabase API", () => {
       "topics",
       "subtopics",
       "learning_objectives",
+      "v_objective_context",
+      "v_topic_summary",
       "curriculum_content",
       "curriculum_chunks",
       "profiles",

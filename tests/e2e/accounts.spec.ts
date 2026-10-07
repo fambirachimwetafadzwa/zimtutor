@@ -76,6 +76,31 @@ test.describe("accounts and roles, end to end", () => {
     ).toBeVisible();
   });
 
+  test("a form that is refused keeps what was typed — except the password", async ({ page }) => {
+    const email = `typo-${unique()}@example.test`;
+    await page.goto("/signup");
+    await page.getByLabel("Your first name or nickname").fill("Tendai");
+    await page.getByLabel("Email address").fill(email);
+    await page.getByLabel("Password").fill("short");
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: "Create parent account" }).click();
+
+    await expect(page.getByRole("alert").filter({ hasText: /\w/ }).first()).toBeVisible();
+    await expect(page.getByLabel("Your first name or nickname")).toHaveValue("Tendai");
+    await expect(page.getByLabel("Email address")).toHaveValue(email);
+    await expect(page.getByRole("checkbox")).toBeChecked();
+    await expect(page.getByLabel("Password")).toHaveValue("");
+
+    // A wrong learner password keeps the username but never the password.
+    await page.goto("/login?who=learner");
+    await page.getByLabel("Your username").fill("kept-name");
+    await page.getByLabel("Password").fill("not the password");
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect(page.getByText("We couldn't sign you in.")).toBeVisible();
+    await expect(page.getByLabel("Your username")).toHaveValue("kept-name");
+    await expect(page.getByLabel("Password")).toHaveValue("");
+  });
+
   test("an administrator reaches the administration area and can sign out", async ({ page }) => {
     await signUpAdmin(page, "admin");
     await expect(page.getByRole("heading", { name: "Administration" })).toBeVisible();

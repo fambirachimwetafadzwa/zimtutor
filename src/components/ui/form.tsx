@@ -1,7 +1,13 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import type { InputHTMLAttributes, ReactNode } from "react";
+import type {
+  InputHTMLAttributes,
+  ReactNode,
+  Ref,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react";
 
 /** Submit button that disables itself while the Server Action runs (prevents double submits). */
 export function SubmitButton({
@@ -31,6 +37,7 @@ export function Field({
   name,
   error,
   hint,
+  id = name,
   ...input
 }: {
   label: string;
@@ -38,15 +45,15 @@ export function Field({
   error?: string;
   hint?: string;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, "name">) {
-  const hintId = hint ? `${name}-hint` : undefined;
-  const errorId = error ? `${name}-error` : undefined;
+  const hintId = hint ? `${id}-hint` : undefined;
+  const errorId = error ? `${id}-error` : undefined;
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={name} className="text-base font-semibold">
+      <label htmlFor={id} className="text-base font-semibold">
         {label}
       </label>
       <input
-        id={name}
+        id={id}
         name={name}
         aria-invalid={error ? true : undefined}
         aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
@@ -80,5 +87,110 @@ export function FormMessage({ error, message }: { error?: string; message?: stri
     >
       {error ?? message}
     </p>
+  );
+}
+
+const controlClass =
+  "rounded-xl border border-border bg-surface px-4 py-3 text-lg shadow-sm aria-[invalid=true]:border-red-600";
+
+function Described({
+  id,
+  hint,
+  error,
+  children,
+  label,
+}: {
+  id: string;
+  hint?: string;
+  error?: string;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-base font-semibold">
+        {label}
+      </label>
+      {children}
+      {hint ? (
+        <p id={`${id}-hint`} className="text-sm text-muted">
+          {hint}
+        </p>
+      ) : null}
+      {error ? (
+        <p id={`${id}-error`} role="alert" className="text-sm font-medium text-red-700">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+const describedBy = (id: string, hint?: string, error?: string) =>
+  [hint ? `${id}-hint` : undefined, error ? `${id}-error` : undefined].filter(Boolean).join(" ") ||
+  undefined;
+
+export function TextAreaField({
+  label,
+  name,
+  error,
+  hint,
+  id = name,
+  ...input
+}: {
+  label: string;
+  name: string;
+  error?: string;
+  hint?: string;
+} & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "name">) {
+  return (
+    <Described id={id} label={label} hint={hint} error={error}>
+      <textarea
+        id={id}
+        name={name}
+        rows={5}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy(id, hint, error)}
+        className={`min-h-32 ${controlClass}`}
+        {...input}
+      />
+    </Described>
+  );
+}
+
+export function SelectField({
+  label,
+  name,
+  error,
+  hint,
+  options,
+  id = name,
+  ...input
+}: {
+  label: string;
+  name: string;
+  error?: string;
+  hint?: string;
+  options: Array<{ value: string; label: string }>;
+  /** React 19 passes `ref` to function components as an ordinary prop. */
+  ref?: Ref<HTMLSelectElement>;
+} & Omit<SelectHTMLAttributes<HTMLSelectElement>, "name">) {
+  return (
+    <Described id={id} label={label} hint={hint} error={error}>
+      <select
+        id={id}
+        name={name}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy(id, hint, error)}
+        className={`min-h-12 ${controlClass}`}
+        {...input}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </Described>
   );
 }

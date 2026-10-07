@@ -16,6 +16,7 @@ export function CreateLearnerForm() {
       <Field
         label="Learner's first name or nickname"
         name="displayName"
+        defaultValue={state.values?.displayName}
         error={errors.displayName}
         hint="This is shown to your child. Please don't use a full name."
         autoComplete="off"
@@ -24,6 +25,7 @@ export function CreateLearnerForm() {
       <Field
         label="Username"
         name="username"
+        defaultValue={state.values?.username}
         error={errors.username}
         hint="Your child types this to sign in. 3–24 letters or numbers, no spaces."
         autoCapitalize="none"
@@ -46,7 +48,14 @@ export function CreateLearnerForm() {
         <div className="flex flex-wrap gap-3">
           {GRADES.map((g) => (
             <label key={g} className="cursor-pointer">
-              <input type="radio" name="grade" value={g} className="peer sr-only" required />
+              <input
+                type="radio"
+                name="grade"
+                value={g}
+                defaultChecked={state.values?.grade === String(g)}
+                className="peer sr-only"
+                required
+              />
               <span className="inline-flex min-h-12 min-w-16 items-center justify-center rounded-xl border-2 border-border bg-surface px-4 text-lg font-semibold peer-checked:border-brand peer-checked:bg-brand peer-checked:text-brand-contrast peer-focus-visible:outline-3 peer-focus-visible:outline-accent">
                 {g}
               </span>

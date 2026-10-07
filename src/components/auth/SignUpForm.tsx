@@ -16,6 +16,7 @@ export function SignUpForm() {
       <Field
         label="Your first name or nickname"
         name="displayName"
+        defaultValue={state.values?.displayName}
         autoComplete="given-name"
         error={errors.displayName}
         hint="Please don't use a full name or contact details."
@@ -25,6 +26,7 @@ export function SignUpForm() {
         label="Email address"
         name="email"
         type="email"
+        defaultValue={state.values?.email}
         autoComplete="email"
         error={errors.email}
         required
@@ -40,7 +42,13 @@ export function SignUpForm() {
       />
       <div className="flex flex-col gap-1.5">
         <label className="flex items-start gap-3 text-base">
-          <input type="checkbox" name="isGuardian" className="mt-1 size-5" required />
+          <input
+            type="checkbox"
+            name="isGuardian"
+            defaultChecked={state.values?.isGuardian !== undefined}
+            className="mt-1 size-5"
+            required
+          />
           <span>I am a parent or guardian, and I will manage any learner accounts I create.</span>
         </label>
         {errors.isGuardian ? (

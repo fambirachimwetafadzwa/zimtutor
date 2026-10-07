@@ -6,7 +6,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const user = await requireRole("admin");
   return (
     <>
-      <AppHeader user={user} nav={[{ href: "/admin", label: "Admin" }]} />
+      <AppHeader
+        user={user}
+        nav={[
+          { href: "/admin", label: "Admin" },
+          { href: "/admin/curriculum", label: "Curriculum" },
+          { href: "/admin/supplemental", label: "Supplemental content" },
+          { href: "/admin/audit", label: "Audit log" },
+        ]}
+      />
       {children}
     </>
   );
