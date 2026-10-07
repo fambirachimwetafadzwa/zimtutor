@@ -148,3 +148,79 @@ describe.skipIf(!TEST_DATABASE_URL)("provision_learner_profile", () => {
     });
   });
 });
+
+/**
+ * Supabase Auth (GoTrue) creates a user in TWO steps inside one transaction: INSERT the row with
+ * only provider info in app_metadata, then MERGE the caller's app_metadata. The triggers must
+ * work for that real sequence — an earlier version only worked when the role was in the INSERT,
+ * which is not what GoTrue does (found by running the migrations under a real GoTrue).
+ */
+describe.skipIf(!TEST_DATABASE_URL)("user creation the way Supabase Auth really does it", () => {
+  let db: TestDatabase;
+  let u: TestUsers;
+
+  beforeAll(async () => {
+    db = await createTestDatabase();
+    u = await seedUsers(db.sql);
+  });
+  afterAll(async () => {
+    await db?.drop();
+  });
+
+  const provider = { provider: "email", providers: ["email"] };
+  const roleOf = async (id: string) =>
+    (await db.sql`select role::text as role from public.profiles where id = ${id}`)[0]?.role;
+
+  it("gives a learner a STUDENT profile although app_metadata.role arrives after the insert", async () => {
+    const id = randomUUID();
+    await db.sql.begin(async (tx) => {
+      await tx`insert into auth.users (id, email, raw_user_meta_data, raw_app_meta_data)
+               values (${id}, 'gotrue@learners.zimtutor.invalid', ${tx.json({ display_name: "Chipo" })}, ${tx.json(provider)})`;
+      await tx`update auth.users set raw_app_meta_data = raw_app_meta_data || ${tx.json({ role: "student" })} where id = ${id}`;
+    });
+    expect(await roleOf(id)).toBe("student");
+    expect(
+      (await db.sql`select display_name from public.profiles where id = ${id}`)[0]?.display_name,
+    ).toBe("Chipo");
+    // …and provisioning, which requires a student profile, now succeeds.
+    await db.sql`select public.provision_learner_profile(${id}, ${u.parentA}, 4::smallint, 'gotrue-chipo')`;
+  });
+
+  it("rejects the reserved domain when the role never arrives — checked at commit", async () => {
+    const id = randomUUID();
+    await expectPgError(
+      db.sql.begin(async (tx) => {
+        await tx`insert into auth.users (id, email, raw_app_meta_data)
+                 values (${id}, 'squatter@learners.zimtutor.invalid', ${tx.json(provider)})`;
+      }),
+    );
+    expect(await db.sql`select 1 from auth.users where id = ${id}`).toHaveLength(0);
+    expect(await roleOf(id)).toBeUndefined();
+  });
+
+  it("ordinary sign-ups are parents and may use any other domain", async () => {
+    const id = randomUUID();
+    await db.sql.begin(async (tx) => {
+      await tx`insert into auth.users (id, email, raw_user_meta_data, raw_app_meta_data)
+               values (${id}, 'someone@example.test', ${tx.json({ display_name: "Someone" })}, ${tx.json(provider)})`;
+    });
+    expect(await roleOf(id)).toBe("parent");
+  });
+
+  it("never changes an administrator or a parent who already has learners into a student", async () => {
+    for (const id of [u.admin, u.parentA]) {
+      const before = await roleOf(id);
+      await db.sql`update auth.users set raw_app_meta_data = raw_app_meta_data || ${db.sql.json({ role: "student" })} where id = ${id}`;
+      expect(await roleOf(id)).toBe(before);
+    }
+  });
+
+  it("does not let app_metadata.role = admin promote anyone (administrators are promoted out-of-band)", async () => {
+    const id = randomUUID();
+    await db.sql`insert into auth.users (id, email, raw_app_meta_data)
+                 values (${id}, 'wannabe@example.test', ${db.sql.json({ ...provider, role: "admin" })})`;
+    expect(await roleOf(id)).toBe("parent");
+    await db.sql`update auth.users set raw_app_meta_data = raw_app_meta_data || ${db.sql.json({ role: "admin" })} where id = ${id}`;
+    expect(await roleOf(id)).toBe("parent");
+  });
+});

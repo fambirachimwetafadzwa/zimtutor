@@ -66,8 +66,28 @@ chosen from the browser): `npm run admin:promote -- you@example.com`.
 | `npm run db:migrate`          | Apply SQL migrations to `DATABASE_URL`                                            |
 | `npm run admin:promote`       | Make an existing parent account an administrator (needs database access)          |
 
-Database tests run against a real PostgreSQL + pgvector when `TEST_DATABASE_URL` points at a
-superuser connection (CI does this); without it they are skipped.
+## Testing
+
+| Layer                 | Runs against                                                    | Enabled by                                                     |
+| --------------------- | --------------------------------------------------------------- | -------------------------------------------------------------- |
+| Unit + pipeline tests | the real PDF and pure code                                      | always (`npm test`)                                            |
+| Database tests        | real PostgreSQL 16 + pgvector, every migration, RLS, the loader | `TEST_DATABASE_URL` (superuser URL; CI sets it)                |
+| API integration tests | a running Supabase stack: Auth (GoTrue) **and** PostgREST       | `INTEGRATION_SUPABASE_URL`, `…_ANON_KEY`, `…_SERVICE_ROLE_KEY` |
+
+The database tests use a small shim for `auth.*` so they run on vanilla Postgres. The integration
+tests exercise exactly what a browser or a hostile client can reach — sign-up, learner provisioning,
+what each role can read or write through the API, the function allow-list — and exist because the
+shim cannot reproduce how Supabase Auth really behaves (for example it creates a user and merges
+`app_metadata` in two steps; migration 0012 exists because of that).
+
+```bash
+supabase start && supabase db reset       # applies supabase/migrations
+npm run curriculum:load                   # DATABASE_URL = the local DB URL
+INTEGRATION_SUPABASE_URL=<API URL> INTEGRATION_SUPABASE_ANON_KEY=<anon key> \
+INTEGRATION_SUPABASE_SERVICE_ROLE_KEY=<service_role key> npx vitest run tests/integration
+```
+
+Email confirmation must be off for these tests (it is in `supabase/config.toml`).
 
 ## The curriculum data model
 

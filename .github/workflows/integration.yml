@@ -1,0 +1,32 @@
+name: Integration (Supabase stack)
+
+# Runs the API-level security and account tests against a real Supabase stack started with the
+# Supabase CLI. Manual for now: the same tests were verified against Supabase Auth (GoTrue) and
+# PostgREST run directly, but this CLI-based job has not been exercised yet. Run it once from the
+# Actions tab; if it passes, change the trigger to `push`/`pull_request`.
+on:
+  workflow_dispatch:
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: npm ci
+      - name: Start Supabase (applies supabase/migrations)
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,realtime
+      - name: Load the curriculum and run the integration tests
+        run: |
+          eval "$(supabase status -o env)"
+          DATABASE_URL="$DB_URL" npm run curriculum:load
+          INTEGRATION_SUPABASE_URL="$API_URL" \
+          INTEGRATION_SUPABASE_ANON_KEY="$ANON_KEY" \
+          INTEGRATION_SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          npx vitest run tests/integration
