@@ -169,17 +169,15 @@ describe.skipIf(!configured)("mastery persistence (real API)", () => {
     expect(
       (await getMastery(service, learner.id, [OBJECTIVE])).get(OBJECTIVE)!.currentState,
     ).not.toBe("MASTERED");
-    const insert = await learner.db
-      .from("mastery_events")
-      .insert({
-        learner_id: learner.id,
-        objective_id: OBJECTIVE,
-        evidence: 1,
-        score_before: 0,
-        score_after: 1,
-        state_before: "NOT_STARTED",
-        state_after: "MASTERED",
-      });
+    const insert = await learner.db.from("mastery_events").insert({
+      learner_id: learner.id,
+      objective_id: OBJECTIVE,
+      evidence: 1,
+      score_before: 0,
+      score_after: 1,
+      state_before: "NOT_STARTED",
+      state_after: "MASTERED",
+    });
     expect(insert.error).not.toBeNull();
   });
 
