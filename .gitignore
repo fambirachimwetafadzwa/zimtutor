@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# build / test output
+coverage/
+*.tsbuildinfo
+.vitest-cache/
+
+# environment (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# local tooling
+.DS_Store
+*.log
+.vercel/
+.sentryclirc
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+
+# scratch output from the ingestion pipeline (the committed snapshot lives in curriculum/snapshots)
+curriculum/.work/

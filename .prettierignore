@@ -1,0 +1,8 @@
+node_modules
+.next
+coverage
+package-lock.json
+curriculum/snapshots
+curriculum/source
+supabase/migrations
+*.pdf

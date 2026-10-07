@@ -1,0 +1,14 @@
+{
+  "$comment": "Identity of the authoritative curriculum source. The ingestion pipeline refuses to run if the PDF's checksum or cover title does not match this manifest, so a different or modified document can never be imported as OFFICIAL_CURRICULUM by accident.",
+  "document_id": "mopse-junior-mathematics-2024-2030",
+  "title": "Revised Junior Mathematics Syllabus MoPSE 2024 - 2030",
+  "organisation": "Ministry of Primary and Secondary Education (MoPSE), Zimbabwe",
+  "curriculum_year": "2024-2030",
+  "subject": "Mathematics",
+  "grades": [3, 4, 5, 6, 7],
+  "source_type": "OFFICIAL_CURRICULUM",
+  "verification_status": "VERIFIED_FROM_SOURCE",
+  "file": "mopse-junior-mathematics-2024-2030.pdf",
+  "sha256": "1c17924eaa9addf88de225d289daff779e518357658cc4ea1cc17e53df75d239",
+  "page_count": 83
+}
