@@ -1,12 +1,14 @@
-import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
+
+const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": `${root}src`,
       // `server-only` throws when imported outside a React Server Component bundle; stub it for tests.
-      "server-only": path.resolve(__dirname, "tests/support/server-only-stub.ts"),
+      "server-only": `${root}tests/support/server-only-stub.ts`,
     },
   },
   test: {
