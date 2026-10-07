@@ -1,0 +1,252 @@
+/**
+ * Structured misconceptions (spec §12). Each wrong answer a question can predict is tagged with one
+ * of these codes; the tutor uses the code for TARGETED remediation (not just "try again"), and
+ * parents/teachers see which ideas a learner keeps tripping on.
+ *
+ * The same list is seeded into the `misconceptions` table by a migration; a test keeps the two in
+ * step, so a code used by a question always exists in the database.
+ */
+
+export type MisconceptionTopic = "NUM" | "OPS" | "MEA" | "REL" | null;
+
+export interface Misconception {
+  code: string;
+  name: string;
+  /** What the learner is doing wrong, in teacher language. */
+  description: string;
+  topic: MisconceptionTopic;
+  /** How to put it right: the strategy the tutor builds its correction around. */
+  remediation: string;
+  /** A first nudge in learner language. It points at WHERE to look and never gives the answer. */
+  nudge: string;
+}
+
+export const MISCONCEPTIONS: readonly Misconception[] = [
+  // ── the ten the specification names ───────────────────────────────────────────────────────
+  {
+    code: "PLACE_VALUE_CONFUSION",
+    name: "Place value confusion",
+    description:
+      "Gives the digit instead of its value, or reads a digit's position wrongly (for example says the 7 in 4 703 is worth 7).",
+    topic: "NUM",
+    remediation:
+      "Build the number in a place-value chart and say the value of each digit in words, then compare the digit with its value.",
+    nudge:
+      "Hmm, let's put the number in a place-value chart and look at which column the digit sits in.",
+  },
+  {
+    code: "CARRYING_ERROR",
+    name: "Carrying (regrouping) error in addition",
+    description:
+      "Forgets to carry, or carries into the wrong column, when a column adds to ten or more.",
+    topic: "OPS",
+    remediation:
+      "Add column by column, writing the carried digit above the next column; check each column total before moving on.",
+    nudge:
+      "Let's look at the ones column first. What does it add up to, and does it need to move to the next column?",
+  },
+  {
+    code: "BORROWING_ERROR",
+    name: "Borrowing (regrouping) error in subtraction",
+    description:
+      "Subtracts the smaller digit from the larger in every column, or forgets to reduce the next column after borrowing.",
+    topic: "OPS",
+    remediation:
+      "Rewrite the top number with the regrouped digits and check each column: can the bottom digit be taken from the top digit?",
+    nudge:
+      "Let's look at the ones column. Can you take that bottom digit away from the top one, or do we need to borrow?",
+  },
+  {
+    code: "FRACTION_DENOMINATOR_CONFUSION",
+    name: "Denominator confusion",
+    description:
+      "Adds or subtracts denominators as well as numerators, or thinks a bigger denominator means a bigger fraction.",
+    topic: "NUM",
+    remediation:
+      "Show equal parts of the same whole with a fraction strip; the denominator names the size of the parts, so it is not added.",
+    nudge:
+      "Let's draw the two fractions on strips. What does the bottom number tell us about the size of each part?",
+  },
+  {
+    code: "DECIMAL_PLACE_CONFUSION",
+    name: "Decimal place confusion",
+    description:
+      "Misplaces the decimal point, or compares decimals as if they were whole numbers (thinks 0.35 is bigger than 0.4).",
+    topic: "NUM",
+    remediation:
+      "Line the numbers up in a place-value chart with tenths, hundredths and thousandths, and compare column by column from the left.",
+    nudge:
+      "Let's write both numbers under a tenths and hundredths chart and compare the tenths first.",
+  },
+  {
+    code: "UNIT_CONVERSION_ERROR",
+    name: "Unit conversion error",
+    description:
+      "Multiplies or divides by the wrong power of ten (or the wrong way round) when changing between metric units.",
+    topic: "MEA",
+    remediation:
+      "Decide first whether the new unit is bigger or smaller (so should the number be bigger or smaller?), then use the conversion fact.",
+    nudge:
+      "Before we calculate: is a metre bigger or smaller than a centimetre? So should your number get bigger or smaller?",
+  },
+  {
+    code: "TIME_CONVERSION_ERROR",
+    name: "Time conversion error",
+    description:
+      "Treats time as decimal (100 minutes in an hour) or confuses 12-hour and 24-hour clock times.",
+    topic: "MEA",
+    remediation:
+      "Use a number line or clock face with 60-minute hours; for 24-hour times count on from 12.",
+    nudge: "Hmm, how many minutes are there in one hour? Let's count the time on a clock face.",
+  },
+  {
+    code: "AREA_VS_PERIMETER",
+    name: "Area and perimeter confused",
+    description:
+      "Finds the distance around a shape when asked for the space inside it, or the other way round.",
+    topic: "MEA",
+    remediation:
+      "Contrast them physically: perimeter is a fence around a field (length), area is the grass inside (squares).",
+    nudge:
+      "Let's think: are we measuring the edge all the way around, or the space inside the shape?",
+  },
+  {
+    code: "ORDER_OF_OPERATIONS_ERROR",
+    name: "Order of operations error",
+    description:
+      "Works strictly left to right, ignoring that multiplication and division come before addition and subtraction.",
+    topic: "OPS",
+    remediation:
+      "Underline the multiplication or division first, work it out, then do the additions and subtractions; brackets come before everything.",
+    nudge: "Let's look at the operations in the sum. Which one should we do first?",
+  },
+  {
+    code: "GRAPH_READING_ERROR",
+    name: "Graph or table reading error",
+    description:
+      "Reads the wrong bar, the wrong axis or the wrong scale step from a graph, or confuses a count with a category.",
+    topic: "REL",
+    remediation:
+      "Find the label first, follow the bar to the scale with a finger or ruler, and check what one step on the scale is worth.",
+    nudge:
+      "Let's find the bar you need first, and then check what each step on the side scale is worth.",
+  },
+  // ── further misconceptions the question templates can predict ─────────────────────────────
+  {
+    code: "ZERO_PLACEHOLDER_ERROR",
+    name: "Zero as a placeholder missed",
+    description:
+      "Leaves out a zero when writing a number from its words or expanded form (writes 405 for four thousand and five).",
+    topic: "NUM",
+    remediation:
+      "Say each place out loud (thousands, hundreds, tens, ones) and write a zero for every empty place.",
+    nudge: "Let's say each column in turn: thousands, hundreds, tens, ones. Is any column empty?",
+  },
+  {
+    code: "FRACTION_SIZE_BY_DENOMINATOR",
+    name: "Bigger denominator, bigger fraction",
+    description: "Believes 1/8 is larger than 1/4 because 8 is larger than 4.",
+    topic: "NUM",
+    remediation:
+      "Share the same whole into equal parts: more parts means smaller parts. Compare with fraction strips.",
+    nudge:
+      "Imagine one chapati cut into 4 pieces and an identical one cut into 8. Which pieces are bigger?",
+  },
+  {
+    code: "ROUNDING_DIRECTION_ERROR",
+    name: "Rounding in the wrong direction",
+    description:
+      "Rounds down when the next digit is 5 or more (or rounds up when it is below 5), or looks at the wrong digit.",
+    topic: "NUM",
+    remediation:
+      "Find the digit to its right: 5 or more rounds up, less than 5 stays. Mark the two possible answers on a number line.",
+    nudge: "Let's put the number on a number line between the two tens. Which ten is it closer to?",
+  },
+  {
+    code: "BASIC_FACT_ERROR",
+    name: "Basic fact error",
+    description:
+      "Recalls a multiplication or addition fact incorrectly although the method used is right.",
+    topic: "OPS",
+    remediation:
+      "Rebuild the fact from one you know (double, add one more group, use 10×) and practise it in short rounds.",
+    nudge:
+      "Your method looks right. Let's check the times-table fact by building it from one you know well.",
+  },
+  {
+    code: "DIVISION_REMAINDER_ERROR",
+    name: "Remainder mishandled",
+    description:
+      "Ignores the remainder, or writes it as a decimal or in the wrong place, in a division.",
+    topic: "OPS",
+    remediation:
+      "Check by multiplying back and adding the remainder; ask what the remainder means in the story.",
+    nudge:
+      "Let's check: multiply your answer by the divider and see what is left over from the number we started with.",
+  },
+  {
+    code: "OPERATION_CHOICE_ERROR",
+    name: "Wrong operation chosen",
+    description:
+      "Chooses addition, subtraction, multiplication or division that does not fit the situation in a word problem.",
+    topic: null,
+    remediation:
+      "Retell the story in your own words, draw it, and ask what is being joined, taken away, shared or repeated.",
+    nudge:
+      "Let's tell the story again in our own words. Is something being joined together, taken away, shared out or repeated?",
+  },
+  {
+    code: "HCF_LCM_CONFUSION",
+    name: "HCF and LCM confused",
+    description: "Finds a common multiple when asked for a common factor, or the other way round.",
+    topic: "OPS",
+    remediation:
+      "List factors (numbers that divide in) and multiples (numbers that come out in the times table) separately for each number.",
+    nudge:
+      "Are we looking for numbers that divide INTO both of them, or numbers that both of them divide into?",
+  },
+  {
+    code: "ANGLE_TYPE_CONFUSION",
+    name: "Angle types confused",
+    description:
+      "Mixes up acute, right, obtuse and straight angles, or reads the wrong size from a turn.",
+    topic: "MEA",
+    remediation:
+      "Compare every angle with a right angle (a corner of a page): smaller is acute, bigger is obtuse.",
+    nudge:
+      "Let's compare the angle with the corner of your book. Is it smaller or bigger than that corner?",
+  },
+  {
+    code: "AVERAGE_CONFUSION",
+    name: "Mean, median or mode confused",
+    description:
+      "Uses the wrong measure of the data (the most common value instead of the average, or the middle instead of the total shared out).",
+    topic: "REL",
+    remediation:
+      "Say what each word means in plain words: mode is the most common, median the middle one in order, mean is the total shared equally.",
+    nudge:
+      "Let's remember what each word means: which one is 'most common', which one is 'in the middle'?",
+  },
+] as const;
+
+export const MISCONCEPTION_CODES = MISCONCEPTIONS.map((m) => m.code);
+
+const BY_CODE = new Map(MISCONCEPTIONS.map((m) => [m.code, m]));
+
+export function getMisconception(code: string): Misconception | undefined {
+  return BY_CODE.get(code);
+}
+
+export function isMisconceptionCode(code: string): boolean {
+  return BY_CODE.has(code);
+}
+
+/** SQL that seeds the `misconceptions` table from this registry (used to generate and verify the migration). */
+export function misconceptionsSql(): string {
+  const q = (s: string) => `'${s.replace(/'/g, "''")}'`;
+  const rows = MISCONCEPTIONS.map(
+    (m) =>
+      `  (${q(m.code)}, ${q(m.name)}, ${q(m.description)}, ${m.topic ? q(m.topic) : "null"}, ${q(m.remediation)})`,
+  );
+  return `insert into public.misconceptions (code, name, description, topic_code, remediation) values\n${rows.join(",\n")}\non conflict (code) do update set\n  name = excluded.name, description = excluded.description,\n  topic_code = excluded.topic_code, remediation = excluded.remediation;\n`;
+}
