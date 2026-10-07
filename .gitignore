@@ -28,3 +28,7 @@ supabase/.temp/
 
 # scratch output from the ingestion pipeline (the committed snapshot lives in curriculum/snapshots)
 curriculum/.work/
+
+# Playwright
+/test-results/
+/playwright-report/

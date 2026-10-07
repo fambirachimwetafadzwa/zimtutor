@@ -24,7 +24,8 @@
     "curriculum:embed": "tsx scripts/curriculum-embed.ts",
     "curriculum:audit": "tsx scripts/curriculum-audit.ts",
     "db:migrate": "tsx scripts/db-migrate.ts",
-    "admin:promote": "tsx scripts/admin-promote.ts"
+    "admin:promote": "tsx scripts/admin-promote.ts",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -36,6 +37,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.19.0",
     "@types/react": "^19.3.0",
