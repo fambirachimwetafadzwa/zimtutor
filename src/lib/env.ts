@@ -80,6 +80,17 @@ export function readPublicEnv(): PublicEnv {
   return parsed.data;
 }
 
+/** True when the public Supabase settings are present (lets pages show a helpful notice instead of crashing). */
+export function isPublicEnvConfigured(): boolean {
+  try {
+    readPublicEnv();
+    return true;
+  } catch (error) {
+    if (error instanceof EnvError) return false;
+    throw error;
+  }
+}
+
 let cachedServerEnv: ServerEnv | undefined;
 
 /** Server-only configuration. Never call from client components. */
