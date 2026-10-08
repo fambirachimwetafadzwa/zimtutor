@@ -338,14 +338,17 @@ describe.skipIf(!configured)("the real Supabase API", () => {
       ).toHaveLength(0);
     });
 
-    it("can see every learner (for support) but still no conversations", async () => {
+    it("can see every learner (for support) but no conversation except flagged messages", async () => {
       const learners = await admin.db
         .from("learner_profiles")
         .select("profile_id")
         .in("profile_id", [learnerA.id, learnerB.id]);
       expect(learners.data).toHaveLength(2);
-      const messages = await admin.db.from("tutor_messages").select("id");
-      expect(messages.data ?? []).toHaveLength(0);
+      // Whatever other tests have left behind, an administrator is only ever shown what the safety
+      // screen flagged (already stripped of personal details) -- never an ordinary conversation.
+      const messages = await admin.db.from("tutor_messages").select("id, flagged");
+      expect(messages.error).toBeNull();
+      expect((messages.data ?? []).every((m) => m.flagged)).toBe(true);
     });
   });
 

@@ -99,7 +99,15 @@ export class MasteryConflictError extends Error {
   }
 }
 
-const MAX_ATTEMPTS = 5;
+/**
+ * Each round of simultaneous writers lets at least one through, so N writers need at most N rounds;
+ * the limit is comfortably above any realistic number of simultaneous answers for one objective.
+ */
+const MAX_ATTEMPTS = 12;
+
+/** After losing a round, wait a little (more each time, never the same for two writers) before reading again. */
+const backOff = (attempt: number) =>
+  new Promise((resolve) => setTimeout(resolve, Math.random() * 10 * (attempt + 1)));
 
 async function load(
   db: SupabaseClient,
@@ -136,6 +144,7 @@ async function update(
         .insert({ learner_id: learnerId, objective_id: objectiveId, ...row });
       if (!error) return result;
       if (error.code !== "23505") throw new Error(`Could not create mastery: ${error.message}`); // 23505: someone else just created it
+      await backOff(attempt);
       continue;
     }
     const { data, error } = await service
@@ -147,6 +156,7 @@ async function update(
       .select("learner_id");
     if (error) throw new Error(`Could not update mastery: ${error.message}`);
     if (data && data.length === 1) return result;
+    await backOff(attempt);
   }
   throw new MasteryConflictError();
 }

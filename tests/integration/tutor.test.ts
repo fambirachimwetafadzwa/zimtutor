@@ -29,6 +29,7 @@ describe.skipIf(!configured)("the tutor (real API)", () => {
   let service: SupabaseClient;
   let parent: { id: string; db: SupabaseClient };
   let otherParent: { id: string; db: SupabaseClient };
+  let admin: { id: string; db: SupabaseClient };
   let learner: { id: string; db: SupabaseClient };
   let deps: TutorDeps;
 
@@ -49,6 +50,9 @@ describe.skipIf(!configured)("the tutor (real API)", () => {
     service = createClient(URL!, SERVICE!, options);
     parent = await signUp("tutor-parent");
     otherParent = await signUp("tutor-other");
+    admin = await signUp("tutor-admin");
+    const promoted = await service.from("profiles").update({ role: "admin" }).eq("id", admin.id);
+    if (promoted.error) throw promoted.error;
     const username = `tom${run}`;
     const result = await provisionLearner(createSupabaseProvisioningPorts(), parent.id, {
       displayName: "Tom",
@@ -191,7 +195,7 @@ describe.skipIf(!configured)("the tutor (real API)", () => {
     expect(after!.rev).toBeGreaterThan(before!.rev);
   });
 
-  it("lets the learner read their own conversation, the parent see the session but not the words", async () => {
+  it("lets the learner read their own conversation; the parent sees the session, an administrator only flagged words", async () => {
     await act(deps, {
       learnerId: learner.id,
       sessionId,
@@ -217,6 +221,17 @@ describe.skipIf(!configured)("the tutor (real API)", () => {
       .select("content")
       .eq("session_id", sessionId);
     expect(messagesAsParent.data).toEqual([]);
+
+    // An administrator reviewing safety flags sees the flagged message (already stripped of the
+    // number) and nothing else of the conversation.
+    const asAdmin = await admin.db
+      .from("tutor_messages")
+      .select("kind, content, flagged")
+      .eq("session_id", sessionId);
+    expect(asAdmin.error).toBeNull();
+    expect(asAdmin.data!.length).toBeGreaterThan(0);
+    expect(asAdmin.data!.every((m) => m.flagged)).toBe(true);
+    expect(JSON.stringify(asAdmin.data)).not.toContain("0771234567");
 
     const sessionAsStranger = await otherParent.db
       .from("tutor_sessions")
