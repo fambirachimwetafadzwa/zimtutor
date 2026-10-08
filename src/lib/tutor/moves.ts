@@ -26,7 +26,8 @@ export interface ObjectiveFacts {
   content: readonly string[];
   /** The row's Teaching/Learning activities column. */
   activities: readonly string[];
-  sourcePage: number | null;
+  /** Where the syllabus prints it, for the citation shown with its words. */
+  source: { title: string; page: number | null; pageLabel: string | null };
 }
 
 export interface MisconceptionFacts {
@@ -45,7 +46,14 @@ export interface WorkedExampleFacts {
 }
 
 export type TransitionDecision =
-  "NEXT_QUESTION" | "MASTERED" | "ADVANCE" | "KEEP_PRACTISING" | "EASIER_OR_BREAK" | "SESSION_DONE";
+  | "NEXT_QUESTION"
+  | "MASTERED"
+  | "ADVANCE"
+  | "KEEP_PRACTISING"
+  | "EASIER_OR_BREAK"
+  | "SESSION_DONE"
+  /** The child chose to stop. */
+  | "STOPPED";
 
 export type TutorMove =
   | {
@@ -79,7 +87,8 @@ export type TutorMove =
       kind: "FEEDBACK";
       objective: ObjectiveFacts;
       stem: string;
-      verdict: Verdict;
+      /** UNREADABLE: nothing markable was typed (no try is used up). */
+      verdict: Verdict | "UNREADABLE";
       signals: readonly MarkSignal[];
       attempt: number;
       attemptsLeft: number;

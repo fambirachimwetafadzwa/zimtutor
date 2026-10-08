@@ -111,7 +111,9 @@ describe("the template voice", () => {
         text,
         maxWords: 400,
         sources: [text],
-        ...(move.kind === "FEEDBACK" ? { verdict: move.verdict } : {}),
+        ...(move.kind === "FEEDBACK" && move.verdict !== "UNREADABLE"
+          ? { verdict: move.verdict }
+          : {}),
       });
       expect(result.failures, `${move.kind}: ${text}`).toEqual([]);
     }

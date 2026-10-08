@@ -99,7 +99,9 @@ export function createVoice(options: VoiceOptions = {}): TutorVoice {
         truncated: response.stop === "length",
         sources: prompt.sources,
         ...(secret ? { secret } : {}),
-        ...(move.kind === "FEEDBACK" ? { verdict: move.verdict } : {}),
+        ...(move.kind === "FEEDBACK" && move.verdict !== "UNREADABLE"
+          ? { verdict: move.verdict }
+          : {}),
       });
       if (!guard.ok) {
         const reasons: GuardFailure[] = guard.failures;

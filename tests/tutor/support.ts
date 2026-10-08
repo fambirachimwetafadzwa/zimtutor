@@ -23,7 +23,11 @@ export function factsFor(objective: ObjectiveInfo): ObjectiveFacts {
     subtopicName: objective.subtopicShortName,
     content: ["whole numbers up to 1 000 000", "place value of each digit"],
     activities: ["use counters to show tens and ones"],
-    sourcePage: 34,
+    source: {
+      title: "Revised Junior Mathematics Syllabus 2024-2030 (MoPSE)",
+      page: 34,
+      pageLabel: "34",
+    },
   };
 }
 

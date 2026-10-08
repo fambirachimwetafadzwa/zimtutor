@@ -23,7 +23,7 @@ export function usesModel(move: TutorMove): boolean {
     case "TRANSITION":
       return false;
     case "FEEDBACK":
-      return move.verdict !== "CORRECT";
+      return move.verdict === "INCORRECT" || move.verdict === "ALMOST";
     default:
       return true;
   }

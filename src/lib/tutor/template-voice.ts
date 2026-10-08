@@ -111,6 +111,11 @@ export function templateText(move: TutorMove): string {
 
     case "FEEDBACK": {
       const seed = `${move.variety}:${move.attempt}`;
+      if (move.verdict === "UNREADABLE")
+        return (
+          signalAdvice(move.signals) ??
+          "I could not read that answer. Check how you wrote it, then try again."
+        );
       if (move.verdict === "CORRECT") {
         const clean = move.attempt === 1 && move.hintsUsed === 0;
         const praise = clean
@@ -171,6 +176,8 @@ export function templateText(move: TutorMove): string {
           return "A little more practice will help. Let's do another one.";
         case "EASIER_OR_BREAK":
           return "This goal is tricky, and that is okay. We can try an easier question first, or you can take a break and come back later.";
+        case "STOPPED":
+          return "Okay, we can stop here. Everything you did is saved, and you can come back whenever you like.";
         case "SESSION_DONE":
           return `That is a good session. You answered ${move.resolved} ${move.resolved === 1 ? "question" : "questions"} and got ${move.firstTry} right at the first try. You can come back whenever you like.`;
       }
@@ -182,3 +189,16 @@ export function templateText(move: TutorMove): string {
   // unreachable: every move kind returns above
   return "";
 }
+
+/** Short fixed lines for moments that are not a lesson move: a nudge, a limit, a button with nothing to do. */
+export const NOTICES = {
+  noMoreHints:
+    "I have no more hints for this question. Have another go, and ask me to show you how to work it out if you are still stuck.",
+  noMoreHintsMustTry: "I have no more hints for this question. Have another go: you can do it.",
+  hintFirst:
+    "Let's try a hint first. If you are still stuck after that, I will show you how to work it out.",
+  tryFirst: "Have a go first, and I will help you if you are stuck. You can ask for a hint.",
+  skipLimit: "Let's finish this one first. You can ask for a hint if you need help.",
+  unmarkable: "I cannot check this question, so let's try a different one.",
+  nothingToDo: "There is nothing to do with that right now.",
+} as const;

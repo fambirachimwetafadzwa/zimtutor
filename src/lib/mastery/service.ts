@@ -48,6 +48,10 @@ const rowSchema = z.object({
 });
 type Row = z.infer<typeof rowSchema>;
 
+/** For other services that read or write the same table (the tutor commits mastery with its step). */
+export { COLUMNS as MASTERY_COLUMNS, rowSchema as masteryRowSchema };
+export type MasteryRow = Row;
+
 export function fromRow(row: Row): MasteryRecord {
   return {
     masteryScore: row.mastery_score,
