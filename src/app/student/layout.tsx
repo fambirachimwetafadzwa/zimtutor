@@ -6,7 +6,13 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   const user = await requireRole("student");
   return (
     <>
-      <AppHeader user={user} nav={[{ href: "/student", label: "Home" }]} />
+      <AppHeader
+        user={user}
+        nav={[
+          { href: "/student", label: "Home" },
+          { href: "/student/progress", label: "My progress" },
+        ]}
+      />
       {children}
     </>
   );
