@@ -34,7 +34,7 @@ test.describe("accounts and roles, end to end", () => {
     const learner = await learnerContext.newPage();
     await signInLearner(learner, username);
     await expect(learner.getByRole("heading", { name: /Hello, Kuda/ })).toBeVisible();
-    await expect(learner.getByText("Grade 5")).toBeVisible();
+    await expect(learner.getByText(/You're in Grade 5/)).toBeVisible();
     await learnerContext.close();
   });
 

@@ -223,6 +223,7 @@ export function Lesson({
               <AnswerForm
                 key={open.id}
                 question={open}
+                wrongTries={view.tries?.used ?? 0}
                 disabled={pending}
                 onSubmit={(answer: LearnerAnswer) =>
                   run({ type: "ANSWER", questionId: open.id, answer })

@@ -19,10 +19,13 @@ const field =
 export function AnswerForm({
   question,
   disabled,
+  wrongTries = 0,
   onSubmit,
 }: {
   question: PublicQuestion;
   disabled: boolean;
+  /** Wrong tries so far: a choice made before is cleared, so the child must choose again. */
+  wrongTries?: number;
   onSubmit: (answer: LearnerAnswer) => void;
 }) {
   // The form follows how the question is marked. Should a question ever lack what its form needs, a
@@ -32,6 +35,7 @@ export function AnswerForm({
       if (question.options)
         return (
           <Choice
+            key={wrongTries}
             question={question}
             options={question.options}
             disabled={disabled}
