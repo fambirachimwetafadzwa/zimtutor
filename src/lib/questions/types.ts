@@ -68,7 +68,9 @@ export const stemDataSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("bar-chart"),
     title: z.string().max(120),
+    /** What the categories are (always the categories, whichever way the bars point). */
     xLabel: z.string().max(40),
+    /** What the values measure. */
     yLabel: z.string().max(40),
     bars: z
       .array(z.object({ label, value: z.number().min(0) }))
@@ -76,6 +78,8 @@ export const stemDataSchema = z.discriminatedUnion("kind", [
       .max(10),
     max: z.number().positive(),
     step: z.number().positive(),
+    /** "vertical" draws a column graph, "horizontal" a bar graph (default vertical). */
+    orientation: z.enum(["vertical", "horizontal"]).optional(),
   }),
   z.object({
     kind: z.literal("pictograph"),

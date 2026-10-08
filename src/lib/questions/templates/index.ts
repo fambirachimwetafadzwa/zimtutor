@@ -1,4 +1,5 @@
 import type { QuestionTemplate } from "../types";
+import { dataTemplates } from "./data";
 import { decimalTemplates } from "./decimals";
 import { directionTemplates } from "./direction";
 import { fractionTemplates } from "./fractions";
@@ -27,6 +28,7 @@ export const ALL_TEMPLATES: readonly QuestionTemplate[] = [
   ...geometryTemplates,
   ...directionTemplates,
   ...rateTemplates,
+  ...dataTemplates,
 ];
 
 const byId = new Map(ALL_TEMPLATES.map((t) => [t.id, t]));

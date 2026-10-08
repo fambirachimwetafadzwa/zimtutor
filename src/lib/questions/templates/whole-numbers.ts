@@ -715,6 +715,53 @@ export const numberSequences = defineTemplate({
   },
 });
 
+export const numberSequenceCreate = defineTemplate({
+  id: "num.sequence-create",
+  description:
+    "Create a number sequence from a starting number and a rule (add or take away the same number each time).",
+  covers: (o) =>
+    scoped(o, { topic: "NUM", strand: /^number-sequence$/, text: /create|their own/i }),
+  generate: ({ objective: o, difficulty: d, rng, q }) => {
+    const top = Math.min(GRADE_MAX[o.grade]!, 1000);
+    const step = rng.pick(
+      byLevel<number[]>(d, [
+        [2, 5, 10],
+        [2, 3, 5, 10],
+        [3, 4, 5, 10, 20],
+        [4, 6, 25, 50],
+        [6, 7, 25, 50, 100],
+      ]),
+    );
+    const length = byLevel(d, [4, 4, 5, 5, 6]);
+    const down = d >= 2 && rng.chance(0.4);
+    const span = step * (length - 1);
+    // counting back must not go below zero; counting on must stay within the grade's numbers
+    const start = down
+      ? rng.int(length - 1, Math.floor(top / step)) * step
+      : rng.int(0, Math.floor((top - span) / step)) * step;
+    const terms = Array.from({ length }, (_, i) => start + (down ? -i : i) * step);
+    const reversed = terms.map((_, i) => start + (down ? i : -i) * step);
+    return q.list({
+      skill: "APPLICATION",
+      stem: `Make your own number sequence. Start at ${fmtInt(start)} and ${down ? "take away" : "add"} ${fmtInt(step)} each time. Write the first ${length} numbers of your sequence.`,
+      sequence: terms.map(String),
+      answerHint: "Type the numbers in order, with commas between them.",
+      explanation: `Start at ${fmtInt(start)}, then ${down ? "take away" : "add"} ${fmtInt(step)} each time: ${terms.map(fmtInt).join(", ")}.`,
+      hints: [
+        `The first number of the sequence is ${fmtInt(start)}.`,
+        down
+          ? `To get the next number, take ${fmtInt(step)} away from the number before it.`
+          : `To get the next number, add ${fmtInt(step)} to the number before it.`,
+        `The second number is ${fmtInt(terms[1]!)}. Carry on in the same way.`,
+      ],
+      // going the wrong way (adding when told to take away, or the other way round)
+      ...(reversed.every((n) => n >= 0)
+        ? { wrongLists: [{ list: reversed.map(String), tag: "OPERATION_CHOICE_ERROR" }] }
+        : {}),
+    });
+  },
+});
+
 // ── rounding ────────────────────────────────────────────────────────────────────────────────────
 
 const ROUND_UNITS: Record<number, readonly number[]> = {
@@ -1262,6 +1309,7 @@ export const wholeNumberTemplates = [
   orderWhole,
   countOnBack,
   numberSequences,
+  numberSequenceCreate,
   roundWhole,
   ordinals,
   romanNumerals,

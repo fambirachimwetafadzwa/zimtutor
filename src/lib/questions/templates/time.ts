@@ -919,6 +919,250 @@ export const timeOperations = defineTemplate({
   },
 });
 
+// ── shadows and the sun ─────────────────────────────────────────────────────────────────────────
+
+const SHADOW_ITEMS: Item[] = [
+  {
+    stem: "A pole stands in the sun. At which time of day is its shadow the shortest?",
+    correct: "At midday",
+    wrongs: ["Just after sunrise", "In the late afternoon", "Just before sunset"],
+    typed: ["midday", "noon", "12 noon", "at midday", "at noon"],
+    explanation:
+      "At midday the sun is highest in the sky, so shadows are shortest. Early in the morning and late in the afternoon the sun is low, so shadows are long.",
+    hints: [
+      "A shadow gets shorter when the sun is higher in the sky.",
+      "When is the sun at its highest?",
+    ],
+  },
+  {
+    stem: "At which of these times is the shadow of a tree the longest?",
+    correct: "Just after sunrise",
+    wrongs: ["At midday", "At 11:00 in the morning", "At 13:00 in the afternoon"],
+    explanation:
+      "When the sun is low in the sky, just after sunrise or just before sunset, shadows are very long.",
+    hints: [
+      "A shadow is long when the sun is low in the sky.",
+      "When is the sun lowest during the day?",
+    ],
+  },
+  {
+    stem: "In the morning the sun is in the east. In which direction does the shadow of a flagpole point?",
+    correct: "west",
+    wrongs: ["east", "north", "south"],
+    typed: ["west", "the west", "towards the west"],
+    explanation:
+      "A shadow always points away from the sun. The sun is in the east in the morning, so shadows point west.",
+    hints: [
+      "A shadow falls on the side of the object that is away from the sun.",
+      "If the sun is on one side, the shadow is on the opposite side.",
+    ],
+  },
+  {
+    stem: "In the late afternoon the sun is in the west. In which direction does the shadow of a house point?",
+    correct: "east",
+    wrongs: ["west", "north", "south"],
+    typed: ["east", "the east", "towards the east"],
+    explanation:
+      "A shadow always points away from the sun. The sun is in the west in the late afternoon, so shadows point east.",
+    hints: [
+      "A shadow falls on the side of the object that is away from the sun.",
+      "If the sun is on one side, the shadow is on the opposite side.",
+    ],
+  },
+  {
+    stem: "Tendai sees that the shadow of the school flagpole is very long and points towards the west. About what time of day is it?",
+    correct: "Early in the morning",
+    wrongs: ["At midday", "In the late afternoon", "In the middle of the night"],
+    explanation:
+      "The shadow is long, so the sun is low. It points west, so the sun is in the east. That is early in the morning.",
+    hints: [
+      "A long shadow means the sun is low in the sky.",
+      "A shadow points away from the sun. Where is the sun if the shadow points west?",
+    ],
+  },
+  {
+    stem: "Rudo sees that her shadow is very long and points towards the east. About what time of day is it?",
+    correct: "In the late afternoon",
+    wrongs: ["Early in the morning", "At midday", "In the middle of the night"],
+    explanation:
+      "The shadow is long, so the sun is low. It points east, so the sun is in the west. That is in the late afternoon.",
+    hints: [
+      "A long shadow means the sun is low in the sky.",
+      "A shadow points away from the sun. Where is the sun if the shadow points east?",
+    ],
+  },
+  {
+    stem: "Farai measures the shadow of a stick every hour. The shadow is shortest at about 12:00. What does this tell him?",
+    correct: "The sun is at its highest in the sky at about 12:00",
+    wrongs: [
+      "The sun has set at about 12:00",
+      "The sun is at its lowest at about 12:00",
+      "The sun is in the east at about 12:00",
+    ],
+    explanation:
+      "The shortest shadow means the sun is highest in the sky, which happens around the middle of the day.",
+    hints: [
+      "Shadows are shortest when the sun is high.",
+      "Use the time of the shortest shadow to say where the sun is.",
+    ],
+  },
+  {
+    stem: "From early morning until midday, what happens to the length of the shadow of a pole?",
+    correct: "It gets shorter",
+    wrongs: ["It gets longer", "It stays the same", "It disappears for ever"],
+    explanation:
+      "The sun rises higher and higher until midday, so the shadow of the pole gets shorter.",
+    hints: [
+      "Think about what the sun does between morning and midday: does it get higher or lower?",
+      "A higher sun makes a shorter shadow.",
+    ],
+  },
+  {
+    stem: "From midday until sunset, what happens to the length of the shadow of a pole?",
+    correct: "It gets longer",
+    wrongs: ["It gets shorter", "It stays the same", "It points to the west"],
+    explanation:
+      "The sun gets lower and lower after midday, so the shadow of the pole gets longer.",
+    hints: [
+      "Think about what the sun does between midday and sunset: does it get higher or lower?",
+      "A lower sun makes a longer shadow.",
+    ],
+  },
+];
+
+export const shadowsAndSun = defineTemplate({
+  id: "mea.time-shadows",
+  description:
+    "Estimate the time of day from the length and direction of shadows and the position of the sun.",
+  covers: (o) => scoped(o, { topic: MEA, strand: /^time$/, text: /estimate time from shadows/i }),
+  generate: ({ difficulty: d, rng, q }) => {
+    const item = rng.pick(SHADOW_ITEMS);
+    if (item.typed && d >= 4)
+      return q.text({
+        skill: "KNOWLEDGE_COMPREHENSION",
+        stem: item.stem,
+        accepted: item.typed,
+        answerHint: "Type your answer.",
+        explanation: item.explanation,
+        hints: item.hints,
+      });
+    return q.mcq({
+      skill: "APPLICATION",
+      stem: item.stem,
+      correct: item.correct,
+      wrongs: item.wrongs.map((answer) => ({ answer })),
+      explanation: item.explanation,
+      hints: item.hints,
+    });
+  },
+});
+
+// ── dates in SI notation ────────────────────────────────────────────────────────────────────────
+
+const SI_RULE =
+  "In SI notation a date is written as year-month-day, each part separated by a dash, with two digits for the month and for the day (for example, 8 October 2024 is 2024-10-08).";
+
+export const siDates = defineTemplate({
+  id: "mea.si-dates",
+  version: 1,
+  description:
+    "Write dates in SI notation and read them. ASSUMPTION: the syllabus does not define the notation; the year-month-day form of ISO 8601 is used, and every question states it.",
+  covers: (o) =>
+    scoped(o, { topic: MEA, strand: /^time$/, text: /SI notation|Standard International/i }),
+  generate: ({ difficulty: d, rng, q }) => {
+    const year = rng.int(2015, 2026);
+    const monthIndex = rng.int(0, 11);
+    const [monthName, monthDays] = MONTHS[monthIndex]!;
+    const day = rng.int(1, monthDays);
+    const si = `${year}-${pad(monthIndex + 1)}-${pad(day)}`;
+    const plain = `${day} ${monthName} ${year}`;
+    const modes: Array<"write" | "read" | "choose" | "earlier"> = ["write", "choose"];
+    if (d >= 2) modes.push("read");
+    if (d >= 3) modes.push("earlier");
+    const mode = rng.pick(modes);
+
+    if (mode === "write")
+      return q.text({
+        skill: "APPLICATION",
+        stem: `${SI_RULE} How do you write ${plain} in SI notation?`,
+        accepted: [
+          si,
+          `${year}${pad(monthIndex + 1)}${pad(day)}`,
+          `${year}-${monthIndex + 1}-${day}`,
+        ],
+        answerHint: "Write it like 2024-10-08.",
+        explanation: `The year is ${year}, ${monthName} is month ${pad(monthIndex + 1)} and the day is ${pad(day)}: ${si}.`,
+        hints: [
+          "Write the year first, then the month, then the day.",
+          "The month and the day each have two digits: write a zero in front of a single digit.",
+        ],
+      });
+    if (mode === "choose") {
+      const swapped = `${year}-${pad(day)}-${pad(monthIndex + 1)}`;
+      const options = new Set([
+        si,
+        `${pad(day)}-${pad(monthIndex + 1)}-${year}`,
+        `${pad(monthIndex + 1)}-${pad(day)}-${year}`,
+        `${pad(day)}/${pad(monthIndex + 1)}/${year}`,
+      ]);
+      if (day <= 12 && swapped !== si) options.add(swapped);
+      else options.add(`${year}-${pad(Math.min(12, day))}-${pad(monthIndex + 1)}`);
+      const wrongs = [...options].filter((o) => o !== si).slice(0, 3);
+      return q.mcq({
+        skill: "APPLICATION",
+        stem: `${SI_RULE} Which of these is ${plain} written in SI notation?`,
+        correct: si,
+        wrongs: wrongs.map((answer) => ({ answer })),
+        keepEqualValues: true,
+        explanation: `SI notation puts the year first, then the month, then the day: ${si}.`,
+        hints: [
+          "SI notation starts with the year.",
+          "After the year comes the month, then the day.",
+        ],
+      });
+    }
+    if (mode === "read") {
+      const otherMonth = MONTHS[(monthIndex + rng.int(1, 10)) % 12]![0];
+      const otherDay = day > 14 ? day - 10 : day + 10;
+      const wrongs = [
+        `${otherDay} ${monthName} ${year}`,
+        `${day} ${otherMonth} ${year}`,
+        `${day} ${monthName} ${year - 1}`,
+      ].filter((w) => w !== plain);
+      return q.mcq({
+        skill: "KNOWLEDGE_COMPREHENSION",
+        stem: `${SI_RULE} Which date is written ${si} in SI notation?`,
+        correct: plain,
+        wrongs: wrongs.map((answer) => ({ answer })),
+        keepEqualValues: true,
+        explanation: `${si} is year ${year}, month ${pad(monthIndex + 1)} (${monthName}), day ${pad(day)}: ${plain}.`,
+        hints: [
+          "Read the three parts in order: year, month, day.",
+          "Month 01 is January, month 02 is February, and so on.",
+        ],
+      });
+    }
+    // which of two dates is earlier
+    const otherMonth = (monthIndex + rng.int(1, 5)) % 12;
+    const otherDay = rng.int(1, MONTHS[otherMonth]![1]);
+    const other = `${year}-${pad(otherMonth + 1)}-${pad(otherDay)}`;
+    const earlier = [si, other].sort()[0]!;
+    const later = earlier === si ? other : si;
+    return q.mcq({
+      skill: "ANALYSIS",
+      stem: `${SI_RULE} Which of these two dates is earlier: ${si} or ${other}?`,
+      correct: earlier,
+      wrongs: [{ answer: later }, { answer: "They are the same date" }],
+      keepEqualValues: true,
+      explanation: `The years are the same, so compare the months, then the days: ${earlier} comes before ${later}.`,
+      hints: [
+        "In SI notation the biggest unit comes first, so you can compare from the left.",
+        "If the years are the same, compare the months. If those are the same too, compare the days.",
+      ],
+    });
+  },
+});
+
 export const timeTemplates = [
   clockReading,
   timeConcepts,
@@ -926,4 +1170,6 @@ export const timeTemplates = [
   timeNotation,
   timeTaken,
   timeOperations,
+  shadowsAndSun,
+  siDates,
 ];
