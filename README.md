@@ -63,6 +63,9 @@ chosen from the browser): `npm run admin:promote -- you@example.com`.
 | `npm run curriculum:load`     | Load the snapshot into Postgres: atomic, repeatable, refuses silent changes       |
 | `npm run curriculum:embed`    | Build RAG chunk embeddings into pgvector (idempotent, resumable)                  |
 | `npm run curriculum:audit`    | Audit the curriculum **as stored in the database** (orphans, provenance, chunks…) |
+| `npm run questions:coverage`  | Which of the 444 objectives have generated practice (and why the rest do not)     |
+| `npm run questions:sample`    | Print sample questions for objectives, e.g. `-- G5-MEA-AREA-002 --difficulty=3`   |
+| `npm run questions:seed`      | Fill the question bank from the templates (idempotent; supplemental, unverified)  |
 | `npm run db:migrate`          | Apply SQL migrations to `DATABASE_URL`                                            |
 | `npm run admin:promote`       | Make an existing parent account an administrator (needs database access)          |
 
@@ -88,6 +91,42 @@ INTEGRATION_SUPABASE_SERVICE_ROLE_KEY=<service_role key> npx vitest run tests/in
 ```
 
 Email confirmation must be off for these tests (it is in `supabase/config.toml`).
+
+## Practice questions, marking and mastery
+
+Practice is generated, checked and marked by code — a language model is never the authority on
+whether an answer is right.
+
+```
+objective + difficulty + seed ─► template ─► question + answer key + hints + predicted wrong answers
+   ─► verified (marks its own answer right, each predicted wrong answer wrong, hints leak nothing)
+   ─► question bank (`questions` for the screen, `question_keys` for the server only)
+   ─► learner answers ─► deterministic marking ─► misconception diagnosis ─► mastery update
+```
+
+- **Templates** (`src/lib/questions/templates`, 127 of them) are scoped to the _Content_ column of the
+  syllabus row they serve: fraction denominators, decimal places, Roman numeral ranges, sums, products,
+  money limits, polygon sizes and the rest are the grade's own, and `tests/questions/scope.test.ts`
+  states those limits independently of the templates so a template that drifts outside them fails.
+  The same seed always gives the same question. 437 of the 444 objectives have templates; the other
+  seven are practical tasks (draw or build solids, draw lines of symmetry) or facts about Zimbabwean
+  currency that need verified source content, and `tests/questions/coverage.test.ts` pins each with its
+  reason. For some objectives a level has only a few different questions (converting hours to days);
+  the tutor then repeats the one the child met longest ago.
+- **Marking** (`src/lib/marking`) uses exact rational arithmetic: decimal commas, spaces in numbers,
+  words, percentages, mixed numbers, units and their dimensions, ordered lists, matching, multi-part
+  answers. The stored detail of an attempt never contains the expected answer.
+- **Misconceptions** (`src/lib/misconceptions`) are structured codes (`PLACE_VALUE_CONFUSION`,
+  `AREA_VS_PERIMETER`, …) predicted per question from its wrong answers, never guessed from free text.
+- **Mastery** (`src/lib/mastery`) is per objective: a Bayesian knowledge-tracing update with soft
+  evidence (hints and retries count for less), difficulty-aware slip and guess rates, gates for
+  `MASTERED`, and spaced `REVIEW`. It is a pure function; the service only stores its result.
+- **Labelling.** Generated questions are stored as `SUPPLEMENTAL` / `UNVERIFIED` practice and shown as
+  "ZimTutor practice question (not part of the syllabus)"; the database function that stores them
+  refuses any `OFFICIAL_*` label. A teacher can mark a question reviewed.
+- **Assumptions the syllabus does not settle** are stated in the question itself rather than hidden:
+  the form of dates in "SI notation" (year-month-day), the unit _are_ (100 m²), and the exchange rates
+  in exchange-rate problems (made-up, labelled as such).
 
 ## The curriculum data model
 
@@ -170,7 +209,11 @@ curriculum/overrides/   reviewed, audited corrections (e.g. maths notation the P
 curriculum/snapshots/   generated curriculum snapshot (reviewable in diffs)
 supabase/migrations/    SQL schema, RLS policies
 src/ingestion/          PDF → snapshot → database pipeline (pure, unit-tested stages)
-src/lib/                domain logic (auth, db helpers, ai/embeddings, …)
+src/lib/marking/        deterministic answer marking
+src/lib/mastery/        per-objective mastery engine and its persistence
+src/lib/misconceptions/ misconception registry and diagnosis
+src/lib/questions/      question templates, generator, verifier, question bank
+src/lib/                other domain logic (auth, db helpers, ai/embeddings, …)
 src/app/                Next.js routes
 scripts/                CLI entry points
 tests/                  unit + database integration tests

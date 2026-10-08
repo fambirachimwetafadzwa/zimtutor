@@ -25,6 +25,7 @@
     "curriculum:audit": "tsx scripts/curriculum-audit.ts",
     "questions:sample": "tsx scripts/questions-sample.ts",
     "questions:coverage": "tsx scripts/questions-coverage.ts",
+    "questions:seed": "tsx scripts/questions-seed.ts",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "admin:promote": "tsx scripts/admin-promote.ts",
     "e2e": "playwright test"
