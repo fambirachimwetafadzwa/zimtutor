@@ -49,3 +49,23 @@ export interface TutorView {
   /** The learner's standing on this goal, in the words and numbers children see. */
   mastery: { state: string; label: string; percent: number } | null;
 }
+
+/** The example's card already shows its question, so the words under it need not say it again. */
+export function withoutRestatedQuestion(text: string, stem: string): string {
+  const restated = `Question: ${stem}`;
+  return text
+    .split("\n\n")
+    .filter((paragraph) => paragraph.trim() !== restated)
+    .join("\n\n");
+}
+
+/**
+ * What a screen reader is told when a tutor message arrives. A question's words are drawn in a card,
+ * so the question itself is added: otherwise someone listening would be told "Here is the next
+ * question" and never hear it.
+ */
+export function announcementFor(message: MessageView): string {
+  return message.kind === "QUESTION" && message.question
+    ? `${message.text} ${message.question.stem}`
+    : message.text;
+}

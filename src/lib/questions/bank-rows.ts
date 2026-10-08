@@ -185,6 +185,34 @@ export const storedQuestionSchema = z.object({
 });
 export type StoredQuestion = z.infer<typeof storedQuestionSchema>;
 
+/** The form a child answers in. */
+export const ANSWER_KINDS = ["CHOICE", "TRUE_FALSE", "ORDER", "MATCH", "BOXES", "TEXT"] as const;
+export type AnswerKind = (typeof ANSWER_KINDS)[number];
+
+/**
+ * Which form a child answers in. It follows how the question is MARKED, not what it is about: a clock
+ * question is a "visual diagram" and may still be multiple choice; a word problem may be true or
+ * false. (`items` exist only for ordering, `matching` only for matching, `answerFields` only for
+ * multi-part marking, `options` only for multiple-choice marking: the question schema enforces it.)
+ */
+export function answerKindOf(markingMethod: string, presentation: Presentation): AnswerKind {
+  switch (markingMethod) {
+    case "MULTIPLE_CHOICE":
+      return "CHOICE";
+    case "TRUE_FALSE":
+      return "TRUE_FALSE";
+    case "MATCHING_PAIRS":
+      return "MATCH";
+    case "MULTI_PART":
+      return "BOXES";
+    case "ORDERED_SEQUENCE":
+      // arranged with the arrows when there are items to arrange, otherwise typed ("2, 4, 6")
+      return presentation.items ? "ORDER" : "TEXT";
+    default:
+      return "TEXT";
+  }
+}
+
 /** What a learner's screen is given. There is no field for an answer, a hint or an explanation. */
 export interface PublicQuestion {
   id: string;
@@ -192,6 +220,8 @@ export interface PublicQuestion {
   grade: number;
   difficulty: Difficulty;
   type: QuestionType;
+  /** Which form to answer in (how the question is marked, not its category). */
+  answerKind: AnswerKind;
   skill: AssessmentSkill;
   stem: string;
   stemData?: StemData;
@@ -214,6 +244,7 @@ export function toPublicQuestion(row: StoredQuestion): PublicQuestion {
     grade: row.grade,
     difficulty: row.difficulty as Difficulty,
     type: row.question_type,
+    answerKind: answerKindOf(row.marking_method, presentation),
     skill: row.assessment_skill,
     stem: row.stem,
     ...(stemData ? { stemData } : {}),

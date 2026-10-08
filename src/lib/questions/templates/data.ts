@@ -1442,6 +1442,7 @@ export const barGraphs = defineTemplate({
 
 export const pictographs = defineTemplate({
   id: "rel.pictograph",
+  version: 2,
   description:
     "Read pictographs where one symbol stands for more than one: counts, totals, differences, the key.",
   covers: (o) => scoped(o, { topic: REL, strand, text: /pictographs?/i }),
@@ -1468,7 +1469,7 @@ export const pictographs = defineTemplate({
     }));
     const picture: StemData = {
       kind: "pictograph",
-      title: `${set.title}. Key: ${set.symbol} = ${each}`,
+      title: set.title, // the picture prints its own key line (symbol and value)
       symbol: set.symbol,
       each,
       rows: rows.map((r) => ({ label: r.label, count: r.count })),
