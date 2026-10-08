@@ -1,4 +1,5 @@
 import type { Path } from "../adaptive/path";
+import type { PaperSummary } from "../exam/service";
 import { practicableObjectiveIds } from "../adaptive/practice";
 import { summariseProgress } from "../adaptive/progress";
 import { isStruggling } from "../adaptive/recommend";
@@ -59,6 +60,8 @@ export interface ParentOverview {
   needsHand: NeedsHand[];
   recentlyMastered: RecentlyMastered[];
   recent: RecentItem[];
+  /** Practice papers finished, newest first: ZimTutor practice scores, never ZIMSEC results. */
+  papers: PaperSummary[];
   /** The last time the child did anything in a lesson, as an ISO time. */
   lastActive: string | null;
 }
@@ -101,6 +104,8 @@ export function buildParentOverview(input: {
   path: Path;
   mastery: ReadonlyMap<string, MasteryRecord>;
   sessions: readonly SessionRow[];
+  /** The child's practice papers (any state; only finished ones are shown). */
+  papers?: readonly PaperSummary[];
   now: Date;
 }): ParentOverview {
   const { learner, path, mastery, sessions, now } = input;
@@ -145,6 +150,7 @@ export function buildParentOverview(input: {
     needsHand: needsHand.slice(0, NEEDS_HAND_SHOWN),
     recentlyMastered: recentlyMastered.slice(0, MASTERED_SHOWN),
     recent: recentWork(sessions, path),
+    papers: (input.papers ?? []).filter((p) => p.status === "COMPLETED").slice(0, 5),
     lastActive: times.length > 0 ? new Date(Math.max(...times)).toISOString() : null,
   };
 }

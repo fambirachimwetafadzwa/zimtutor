@@ -11,6 +11,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
         nav={[
           { href: "/student", label: "Home" },
           { href: "/student/progress", label: "My progress" },
+          { href: "/student/exams", label: "Practice papers" },
         ]}
       />
       {children}

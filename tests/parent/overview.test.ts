@@ -167,6 +167,47 @@ describe("the rest of the screen", () => {
   });
 });
 
+describe("practice papers", () => {
+  const paper = (
+    id: string,
+    status: "IN_PROGRESS" | "COMPLETED",
+    over: Record<string, unknown> = {},
+  ) => ({
+    id,
+    kind: "EXAM_STYLE_PAPER_1" as const,
+    paperNumber: 1 as const,
+    length: "SHORT" as const,
+    status,
+    startedAt: "2026-10-07T08:00:00Z",
+    completedAt: status === "COMPLETED" ? "2026-10-07T09:00:00Z" : null,
+    marksAwarded: status === "COMPLETED" ? 14 : null,
+    marksAvailable: 20,
+    percent: status === "COMPLETED" ? 70 : null,
+    bands: [{ band: "KNOWLEDGE_COMPREHENSION" as const, percent: 80 }],
+    ...over,
+  });
+
+  it("shows only the papers that are finished, at most five", () => {
+    const shown = buildParentOverview({
+      learner,
+      path: PATH,
+      mastery: new Map(),
+      sessions: [],
+      papers: [
+        paper("open", "IN_PROGRESS"),
+        ...Array.from({ length: 7 }, (_, i) => paper(`done${i}`, "COMPLETED")),
+      ],
+      now: NOW,
+    }).papers;
+    expect(shown).toHaveLength(5);
+    expect(shown.every((p) => p.status === "COMPLETED")).toBe(true);
+  });
+
+  it("has none when there are none", () => {
+    expect(overview().papers).toEqual([]);
+  });
+});
+
 describe("privacy", () => {
   it("contains no word of any conversation and no individual answer: only goals, counts and times", () => {
     const mastery = new Map<string, MasteryRecord>([

@@ -91,6 +91,20 @@ export function bandCounts(total: number, proportions: Proportions): Record<Skil
   return counts;
 }
 
+/** "Paper 1: 20 multiple-choice questions (short paper)": what is really in the paper, not the full paper's name. */
+function titleOf(
+  paperNumber: 1 | 2,
+  description: string,
+  sections: readonly SectionPlan[],
+  length: PaperLength,
+): string {
+  const base =
+    paperNumber === 1 && /multiple choice/i.test(description)
+      ? `Paper 1: ${sections[0]!.offered} multiple-choice questions`
+      : `Paper ${paperNumber}: ${description}`;
+  return length === "SHORT" ? `${base} (short paper)` : base;
+}
+
 export function buildPlan(
   structure: OfficialStructure,
   input: { paperNumber: 1 | 2; length: PaperLength; proportions?: Proportions },
@@ -147,7 +161,7 @@ export function buildPlan(
     kind: kindOf(input.paperNumber),
     paperNumber: input.paperNumber,
     length: input.length,
-    title: `Paper ${input.paperNumber}: ${official.description}`,
+    title: titleOf(input.paperNumber, official.description, sections, input.length),
     sections,
     countedMarks,
     proportions,

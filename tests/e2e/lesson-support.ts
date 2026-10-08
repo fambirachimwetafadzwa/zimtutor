@@ -33,9 +33,12 @@ export async function openQuestion(service: SupabaseClient, learnerId: string) {
   return { key, question: toPublicQuestion(row) };
 }
 
-/** Put the answer into whatever form is on screen. Does not press "Check my answer". */
+/**
+ * Put the answer into whatever form is on screen. Does not press "Check my answer". `page` may be one
+ * question's own box on a page that holds many (a practice paper).
+ */
 export async function fillAnswer(
-  page: Page,
+  page: Page | Locator,
   key: QuestionKey,
   question: ReturnType<typeof toPublicQuestion>,
   answer: LearnerAnswer = key.display,
@@ -47,9 +50,7 @@ export async function fillAnswer(
   if (typeof answer === "string") {
     if (question.answerKind === "CHOICE") {
       // press the whole option, as a finger would, rather than the small circle
-      await page
-        .locator("label", { has: page.locator(`input[type="radio"][value="${answer}"]`) })
-        .click();
+      await page.locator(`label:has(input[type="radio"][value="${answer}"])`).click();
       return "choice";
     }
     await page.getByLabel("Your answer", { exact: true }).fill(answer);

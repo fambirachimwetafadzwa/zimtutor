@@ -1,5 +1,6 @@
 import "server-only";
 import { cachedPath } from "../adaptive/cache";
+import { listPapers } from "../exam/service";
 import { getMastery } from "../mastery/service";
 import { readSessions } from "../student/sessions";
 import { createSupabaseServerClient } from "../supabase/server";
@@ -22,11 +23,12 @@ export async function loadParentOverview(
     .maybeSingle();
   if (!profile) return null; // not this parent's child, or no such child
 
-  const [{ data: person }, path, mastery, sessions] = await Promise.all([
+  const [{ data: person }, path, mastery, sessions, papers] = await Promise.all([
     db.from("profiles").select("display_name").eq("id", learnerId).maybeSingle(),
     cachedPath(db),
     getMastery(db, learnerId),
     readSessions(db, learnerId),
+    listPapers(db, learnerId, 5),
   ]);
   return buildParentOverview({
     learner: {
@@ -37,6 +39,7 @@ export async function loadParentOverview(
     path,
     mastery,
     sessions,
+    papers,
     now,
   });
 }

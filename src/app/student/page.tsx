@@ -62,6 +62,18 @@ export default async function StudentHome() {
         </p>
       </section>
 
+      <section aria-labelledby="papers-heading" className="flex flex-col gap-3">
+        <h2 id="papers-heading" className="text-2xl font-bold">
+          Practice papers
+        </h2>
+        <p className="text-lg">
+          Try a whole paper made like the Grade 7 examination, and see what to practise next.{" "}
+          <Link href="/student/exams" className="font-semibold text-brand underline">
+            Practice papers
+          </Link>
+        </p>
+      </section>
+
       <section aria-labelledby="recent-heading" className="flex flex-col gap-3">
         <h2 id="recent-heading" className="text-2xl font-bold">
           My recent work

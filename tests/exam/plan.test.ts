@@ -73,7 +73,13 @@ describe("a full Paper 1", () => {
 
   it("cites the syllabus page it follows", () => {
     expect(plan.citation.page).toBe(82);
-    expect(plan.title).toMatch(/Paper 1: 40 Multiple Choice Questions/);
+    expect(plan.title).toBe("Paper 1: 40 multiple-choice questions");
+    expect(buildPlan(STRUCTURE, { paperNumber: 1, length: "SHORT" }).title).toBe(
+      "Paper 1: 20 multiple-choice questions (short paper)",
+    );
+    expect(buildPlan(STRUCTURE, { paperNumber: 2, length: "FULL" }).title).toBe(
+      "Paper 2: Structured Questions",
+    );
   });
 });
 

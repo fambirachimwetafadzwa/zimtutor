@@ -4,6 +4,7 @@ import { z } from "zod";
 import { AppPage } from "@/components/layout/PageShell";
 import { MasteredList, NeedsHandList } from "@/components/parent/GoalLists";
 import { WeekTiles } from "@/components/parent/WeekTiles";
+import { PapersList } from "@/components/parent/PapersList";
 import { RecentWork } from "@/components/student/RecentWork";
 import { Tiles } from "@/components/student/Tiles";
 import { TopicCards } from "@/components/student/TopicCards";
@@ -78,6 +79,13 @@ export default async function LearnerOverviewPage({ params }: { params: Params }
           Recently mastered
         </h2>
         <MasteredList items={overview.recentlyMastered} />
+      </section>
+
+      <section aria-labelledby="papers-heading" className="flex flex-col gap-3">
+        <h2 id="papers-heading" className="text-2xl font-bold">
+          Practice papers
+        </h2>
+        <PapersList papers={overview.papers} name={learner.name} />
       </section>
 
       <section aria-labelledby="recent-heading" className="flex flex-col gap-3">

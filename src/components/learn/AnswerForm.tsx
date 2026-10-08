@@ -21,12 +21,18 @@ export function AnswerForm({
   disabled,
   wrongTries = 0,
   onSubmit,
+  submitLabel = "Check my answer",
+  initial = null,
 }: {
   question: PublicQuestion;
   disabled: boolean;
   /** Wrong tries so far: a choice made before is cleared, so the child must choose again. */
   wrongTries?: number;
   onSubmit: (answer: LearnerAnswer) => void;
+  /** What the button says ("Save my answer" in a paper, where nothing is checked yet). */
+  submitLabel?: string;
+  /** An answer already given, shown again (a paper's saved answers). */
+  initial?: LearnerAnswer | null;
 }) {
   // The form follows how the question is marked. Should a question ever lack what its form needs, a
   // text box still lets the child answer (it is then marked as typed text, never silently skipped).
@@ -40,37 +46,78 @@ export function AnswerForm({
             options={question.options}
             disabled={disabled}
             onSubmit={onSubmit}
+            submitLabel={submitLabel}
+            initial={initial}
           />
         );
       break;
     case "TRUE_FALSE":
-      return <TrueFalse disabled={disabled} onSubmit={onSubmit} />;
+      return <TrueFalse disabled={disabled} onSubmit={onSubmit} initial={initial} />;
     case "ORDER":
       if (question.items)
-        return <Ordering items={question.items} disabled={disabled} onSubmit={onSubmit} />;
+        return (
+          <Ordering
+            items={question.items}
+            disabled={disabled}
+            onSubmit={onSubmit}
+            submitLabel={submitLabel}
+            initial={initial}
+          />
+        );
       break;
     case "MATCH":
       if (question.matching)
-        return <Matching matching={question.matching} disabled={disabled} onSubmit={onSubmit} />;
+        return (
+          <Matching
+            matching={question.matching}
+            disabled={disabled}
+            onSubmit={onSubmit}
+            submitLabel={submitLabel}
+            initial={initial}
+          />
+        );
       break;
     case "BOXES":
       if (question.answerFields && question.answerFields.length > 0)
-        return <Boxes fields={question.answerFields} disabled={disabled} onSubmit={onSubmit} />;
+        return (
+          <Boxes
+            fields={question.answerFields}
+            disabled={disabled}
+            onSubmit={onSubmit}
+            submitLabel={submitLabel}
+            initial={initial}
+          />
+        );
       break;
     case "TEXT":
       break;
   }
-  return <Typed hint={question.answerHint} disabled={disabled} onSubmit={onSubmit} />;
+  return (
+    <Typed
+      hint={question.answerHint}
+      disabled={disabled}
+      onSubmit={onSubmit}
+      submitLabel={submitLabel}
+      initial={initial}
+    />
+  );
 }
 
-type Props = { disabled: boolean; onSubmit: (answer: LearnerAnswer) => void };
+type Props = {
+  disabled: boolean;
+  onSubmit: (answer: LearnerAnswer) => void;
+  submitLabel?: string;
+  initial?: LearnerAnswer | null;
+};
 
 function Choice({
   options,
   disabled,
   onSubmit,
+  submitLabel = "Check my answer",
+  initial = null,
 }: Props & { question: PublicQuestion; options: Array<{ id: string; text: string }> }) {
-  const [picked, setPicked] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(typeof initial === "string" ? initial : null);
   const name = useId();
   return (
     <form
@@ -104,13 +151,13 @@ function Choice({
         ))}
       </fieldset>
       <button type="submit" className={button} disabled={disabled || picked === null}>
-        Check my answer
+        {submitLabel}
       </button>
     </form>
   );
 }
 
-function TrueFalse({ disabled, onSubmit }: Props) {
+function TrueFalse({ disabled, onSubmit, initial = null }: Props) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-base font-semibold text-muted">Is the statement true or false?</p>
@@ -119,6 +166,7 @@ function TrueFalse({ disabled, onSubmit }: Props) {
           type="button"
           className={button}
           aria-disabled={disabled}
+          aria-pressed={initial === true}
           onClick={() => !disabled && onSubmit(true)}
           data-autofocus
         >
@@ -128,6 +176,7 @@ function TrueFalse({ disabled, onSubmit }: Props) {
           type="button"
           className={button}
           aria-disabled={disabled}
+          aria-pressed={initial === false}
           onClick={() => !disabled && onSubmit(false)}
         >
           False
@@ -137,8 +186,14 @@ function TrueFalse({ disabled, onSubmit }: Props) {
   );
 }
 
-function Typed({ hint, disabled, onSubmit }: Props & { hint: string | undefined }) {
-  const [text, setText] = useState("");
+function Typed({
+  hint,
+  disabled,
+  onSubmit,
+  submitLabel = "Check my answer",
+  initial = null,
+}: Props & { hint: string | undefined }) {
+  const [text, setText] = useState(typeof initial === "string" ? initial : "");
   const id = useId();
   return (
     <form
@@ -169,7 +224,7 @@ function Typed({ hint, disabled, onSubmit }: Props & { hint: string | undefined 
         </p>
       ) : null}
       <button type="submit" className={button} disabled={disabled || text.trim() === ""}>
-        Check my answer
+        {submitLabel}
       </button>
     </form>
   );
@@ -179,8 +234,16 @@ function Boxes({
   fields,
   disabled,
   onSubmit,
+  submitLabel = "Check my answer",
+  initial = null,
 }: Props & { fields: Array<{ id: string; label: string; unit?: string | undefined }> }) {
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    initial && typeof initial === "object" && !Array.isArray(initial)
+      ? Object.fromEntries(
+          Object.entries(initial).map(([k, v]) => [k, typeof v === "string" ? v : ""]),
+        )
+      : {},
+  );
   const base = useId();
   const complete = fields.every((f) => (values[f.id] ?? "").trim() !== "");
   return (
@@ -213,14 +276,26 @@ function Boxes({
         </div>
       ))}
       <button type="submit" className={button} disabled={disabled || !complete}>
-        Check my answer
+        {submitLabel}
       </button>
     </form>
   );
 }
 
-function Ordering({ items, disabled, onSubmit }: Props & { items: string[] }) {
-  const [order, setOrder] = useState<string[]>(items);
+function Ordering({
+  items,
+  disabled,
+  onSubmit,
+  submitLabel = "Check my answer",
+  initial = null,
+}: Props & { items: string[] }) {
+  const [order, setOrder] = useState<string[]>(
+    Array.isArray(initial) &&
+      initial.length === items.length &&
+      items.every((i) => initial.includes(i))
+      ? initial
+      : items,
+  );
   const [said, setSaid] = useState("");
   const move = (from: number, to: number) => {
     if (to < 0 || to >= order.length) return;
@@ -276,7 +351,7 @@ function Ordering({ items, disabled, onSubmit }: Props & { items: string[] }) {
         {said}
       </p>
       <button type="submit" className={button} aria-disabled={disabled} data-autofocus>
-        Check my answer
+        {submitLabel}
       </button>
     </form>
   );
@@ -286,8 +361,16 @@ function Matching({
   matching,
   disabled,
   onSubmit,
+  submitLabel = "Check my answer",
+  initial = null,
 }: Props & { matching: { left: string[]; right: string[] } }) {
-  const [pairs, setPairs] = useState<Record<string, string>>({});
+  const [pairs, setPairs] = useState<Record<string, string>>(() =>
+    initial && typeof initial === "object" && !Array.isArray(initial)
+      ? Object.fromEntries(
+          Object.entries(initial).map(([k, v]) => [k, typeof v === "string" ? v : ""]),
+        )
+      : {},
+  );
   const base = useId();
   const complete = matching.left.every((l) => (pairs[l] ?? "") !== "");
   return (
@@ -324,7 +407,7 @@ function Matching({
         </div>
       ))}
       <button type="submit" className={button} disabled={disabled || !complete}>
-        Check my answer
+        {submitLabel}
       </button>
     </form>
   );
