@@ -281,6 +281,9 @@ export const decimalExpanded = defineTemplate({
       "Each digit is worth its value in its own place: ones, then tenths, hundredths, thousandths …",
       "Write one term for each digit that is not zero.",
     ];
+    // a distractor must not use more decimal places than the grade works with
+    const allowedPlaces = o.grade <= 4 ? 1 : o.grade === 5 ? 2 : 3;
+    const shiftDownAllowed = terms.every((t) => -(t.exponent - 1) <= allowedPlaces);
     if (d <= 2 || terms.length < 2) {
       return q.mcq({
         skill: "KNOWLEDGE_COMPREHENSION",
@@ -288,7 +291,7 @@ export const decimalExpanded = defineTemplate({
         correct: expandedText,
         wrongs: [
           { answer: digitSum, tag: "DECIMAL_PLACE_CONFUSION" },
-          { answer: shiftDown, tag: "DECIMAL_PLACE_CONFUSION" },
+          ...(shiftDownAllowed ? [{ answer: shiftDown, tag: "DECIMAL_PLACE_CONFUSION" }] : []),
           { answer: shiftUp, tag: "DECIMAL_PLACE_CONFUSION" },
         ],
         explanation: `${dec.text} is ${terms.map((t) => `${t.digit} ${t.exponent < 0 ? DECIMAL_PLACE_NAMES[-t.exponent] : PLACE_NAMES[t.exponent]}`).join(" + ")}, so in expanded form it is ${expandedText}.`,
@@ -305,7 +308,8 @@ export const decimalExpanded = defineTemplate({
       answerHint: "Write a sum with one term for each digit that is not zero.",
       wrongs: [
         { answer: digitSum, tag: "DECIMAL_PLACE_CONFUSION" },
-        { answer: shiftDown, tag: "DECIMAL_PLACE_CONFUSION" },
+        ...(shiftDownAllowed ? [{ answer: shiftDown, tag: "DECIMAL_PLACE_CONFUSION" }] : []),
+        { answer: shiftUp, tag: "DECIMAL_PLACE_CONFUSION" },
       ],
       explanation: `${dec.text} in expanded form is ${expandedText}.`,
       solutionSteps: terms.map(
