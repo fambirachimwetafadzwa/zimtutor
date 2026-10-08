@@ -42,6 +42,19 @@ export type Difficulty = 1 | 2 | 3 | 4 | 5;
 // ── structured picture data (drawn by the interface) ─────────────────────────────────────────
 const label = z.string().min(1).max(40);
 
+/** The eight points of the compass, clockwise from north. */
+export const COMPASS_DIRECTIONS = [
+  "north",
+  "north-east",
+  "east",
+  "south-east",
+  "south",
+  "south-west",
+  "west",
+  "north-west",
+] as const;
+export type CompassDirection = (typeof COMPASS_DIRECTIONS)[number];
+
 export const stemDataSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("table"),
@@ -211,6 +224,36 @@ export const stemDataSchema = z.discriminatedUnion("kind", [
     unit: z.enum(["g", "kg"]),
     step: z.number().positive(),
     labelEvery: z.number().positive(),
+  }),
+  /** A compass rose with 4 or 8 points; `pointer` is where an arrow points (the learner names it). */
+  z.object({
+    kind: z.literal("compass"),
+    points: z.union([z.literal(4), z.literal(8)]),
+    pointer: z.enum(COMPASS_DIRECTIONS).optional(),
+  }),
+  /** A map on a grid with north at the top; places sit on grid points (column, row from the top left). */
+  z.object({
+    kind: z.literal("map"),
+    cols: z.number().int().min(3).max(11),
+    rows: z.number().int().min(3).max(11),
+    places: z
+      .array(
+        z.object({
+          label,
+          col: z.number().int().min(0).max(10),
+          row: z.number().int().min(0).max(10),
+        }),
+      )
+      .min(2)
+      .max(8),
+  }),
+  /** A straight line at `degrees` from the horizontal: 0 is horizontal, 90 is vertical. */
+  z.object({ kind: z.literal("line"), degrees: z.number().min(0).max(179) }),
+  /** Angles that share a vertex and fill a right angle, a straight line or a full turn; one is unknown. */
+  z.object({
+    kind: z.literal("angle-sum"),
+    total: z.union([z.literal(90), z.literal(180), z.literal(360)]),
+    known: z.array(z.number().positive()).min(1).max(4),
   }),
 ]);
 export type StemData = z.infer<typeof stemDataSchema>;

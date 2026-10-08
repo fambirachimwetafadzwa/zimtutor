@@ -1,9 +1,11 @@
 import type { QuestionTemplate } from "../types";
 import { decimalTemplates } from "./decimals";
+import { directionTemplates } from "./direction";
 import { fractionTemplates } from "./fractions";
 import { geometryTemplates } from "./geometry";
 import { measurementTemplates } from "./measurement";
 import { moneyTemplates } from "./money";
+import { rateTemplates } from "./rate";
 import { timeTemplates } from "./time";
 import { rationalOperationTemplates } from "./rational-operations";
 import { wholeNumberTemplates } from "./whole-numbers";
@@ -23,6 +25,8 @@ export const ALL_TEMPLATES: readonly QuestionTemplate[] = [
   ...timeTemplates,
   ...measurementTemplates,
   ...geometryTemplates,
+  ...directionTemplates,
+  ...rateTemplates,
 ];
 
 const byId = new Map(ALL_TEMPLATES.map((t) => [t.id, t]));
