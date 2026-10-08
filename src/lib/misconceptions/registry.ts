@@ -363,6 +363,38 @@ export const MISCONCEPTIONS: readonly Misconception[] = [
       "Walk round the shape with a finger and count every side. Mark each side that has an equal partner and add all of them.",
     nudge: "Let's walk all the way round the shape. How many sides does it have altogether?",
   },
+  {
+    code: "CLOCK_READING_ERROR",
+    name: "Clock hands misread",
+    description:
+      "Reads the minute hand as hours or counts the number the hand points at as minutes (reads 9 as 9 minutes), or reads the wrong hour when the hour hand is between two numbers.",
+    topic: "MEA",
+    remediation:
+      "Look at the short hand for the hour, then at the long hand: each number on the clock face is 5 minutes, so count in fives.",
+    nudge:
+      "Let's look at the short hand first. Which hour has it just passed? Then count the minutes in fives with the long hand.",
+  },
+  {
+    code: "RULER_START_ERROR",
+    name: "Length read from the wrong starting mark",
+    description:
+      "Reads the mark where the line ends instead of working out its length when the line does not start at 0.",
+    topic: "MEA",
+    remediation:
+      "A length is the distance from where the line starts to where it ends: read both marks and find the difference, or slide the line back to 0.",
+    nudge: "Where does the line start on the ruler? Is it at the zero mark?",
+  },
+  {
+    code: "VOLUME_AREA_CONFUSION",
+    name: "Volume found as area or by adding",
+    description:
+      "Multiplies only two of the three measurements (the area of one face) or adds the length, width and height instead of multiplying all three.",
+    topic: "MEA",
+    remediation:
+      "Volume counts the cubes that fill the solid: layers of length × width, and as many layers as the height. Multiply all three measurements.",
+    nudge:
+      "A solid has three measurements. How many layers of cubes fill it, and how many cubes are in each layer?",
+  },
 ] as const;
 
 export const MISCONCEPTION_CODES = MISCONCEPTIONS.map((m) => m.code);

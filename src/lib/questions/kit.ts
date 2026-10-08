@@ -263,6 +263,8 @@ export function unitQuestion(
     unitOptional?: boolean;
     /** The answer must be in exactly this unit (conversions). */
     strictUnit?: boolean;
+    /** The answer as shown after the question ("$2.50"); default: the value and the unit. */
+    answerText?: string;
     wrongs?: Wrong[];
   },
 ): GeneratedQuestion {
@@ -277,7 +279,7 @@ export function unitQuestion(
     common,
     common.type ?? "NUMERIC",
     marking,
-    `${common.value} ${common.unit}`,
+    common.answerText ?? `${common.value} ${common.unit}`,
     tagMap(common.value, common.wrongs),
   );
 }

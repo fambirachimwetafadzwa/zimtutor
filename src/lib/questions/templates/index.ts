@@ -1,6 +1,10 @@
 import type { QuestionTemplate } from "../types";
 import { decimalTemplates } from "./decimals";
 import { fractionTemplates } from "./fractions";
+import { geometryTemplates } from "./geometry";
+import { measurementTemplates } from "./measurement";
+import { moneyTemplates } from "./money";
+import { timeTemplates } from "./time";
 import { rationalOperationTemplates } from "./rational-operations";
 import { wholeNumberTemplates } from "./whole-numbers";
 import { wholeOperationTemplates } from "./whole-operations";
@@ -15,6 +19,10 @@ export const ALL_TEMPLATES: readonly QuestionTemplate[] = [
   ...decimalTemplates,
   ...wholeOperationTemplates,
   ...rationalOperationTemplates,
+  ...moneyTemplates,
+  ...timeTemplates,
+  ...measurementTemplates,
+  ...geometryTemplates,
 ];
 
 const byId = new Map(ALL_TEMPLATES.map((t) => [t.id, t]));

@@ -77,3 +77,8 @@ export function pickName(rng: Rng): string {
 export function plural(count: number, one: string, many: string): string {
   return count === 1 ? `${count} ${one}` : `${count} ${many}`;
 }
+
+/** "a" or "an" before a word, by its first letter (enough for the shape and object names used here). */
+export function aOrAn(word: string): "a" | "an" {
+  return /^[aeiou]/i.test(word) ? "an" : "a";
+}

@@ -104,6 +104,12 @@ const UNITS: UnitDef[] = [
   { symbol: "h", dimension: "TIME", toBase: r(3600), aliases: ["h", "hr", "hrs", "hour", "hours"] },
   { symbol: "day", dimension: "TIME", toBase: r(86400), aliases: ["day", "days"] },
   { symbol: "week", dimension: "TIME", toBase: r(604800), aliases: ["week", "weeks"] },
+  {
+    symbol: "fortnight",
+    dimension: "TIME",
+    toBase: r(1209600),
+    aliases: ["fortnight", "fortnights"],
+  },
 
   // Money: dollars and cents (the unit written "$" or a currency code is the dollar-like unit).
   {
@@ -134,6 +140,8 @@ const UNITS: UnitDef[] = [
     toBase: r(1),
     aliases: ["m²", "m2", "m^2", "sq m", "square metre", "square metres", "square meters"],
   },
+  // 1 are = 100 m² (the metric unit of land area between the square metre and the hectare)
+  { symbol: "are", dimension: "AREA", toBase: r(100), aliases: ["are", "ares"] },
   { symbol: "ha", dimension: "AREA", toBase: r(10000), aliases: ["ha", "hectare", "hectares"] },
   {
     symbol: "km²",
