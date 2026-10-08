@@ -19,24 +19,34 @@ export interface SessionUpdate {
  *  - any response that sets auth cookies must not be cached by a CDN, or one user's session could
  *    be served to another — the library hands us the exact headers to apply.
  */
-export async function updateSession(request: NextRequest): Promise<SessionUpdate> {
+export async function updateSession(
+  request: NextRequest,
+  /** Headers the rendering of this request must see (the CSP and its nonce). */
+  extraRequestHeaders: Record<string, string> = {},
+): Promise<SessionUpdate> {
+  // a response that passes the request on, with the extra headers and whatever cookies it now holds
+  const next = () => {
+    const headers = new Headers(request.headers);
+    for (const [key, value] of Object.entries(extraRequestHeaders)) headers.set(key, value);
+    return NextResponse.next({ request: { headers } });
+  };
   let env;
   try {
     env = readPublicEnv();
   } catch (error) {
     if (error instanceof EnvError) {
-      return { response: NextResponse.next({ request }), userId: null, configured: false };
+      return { response: next(), userId: null, configured: false };
     }
     throw error;
   }
 
-  let response = NextResponse.next({ request });
+  let response = next();
   const supabase = createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (cookiesToSet, headers) => {
         for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
-        response = NextResponse.next({ request });
+        response = next();
         for (const { name, value, options } of cookiesToSet)
           response.cookies.set(name, value, options);
         for (const [key, value] of Object.entries(headers)) response.headers.set(key, value);

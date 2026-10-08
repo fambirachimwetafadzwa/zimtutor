@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { connection } from "next/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,10 @@ export const viewport: Viewport = {
   themeColor: "#0f6b4f",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Every page is rendered for the request it answers: the Content Security Policy carries a nonce made
+  // for that request, which a page built ahead of time could not have.
+  await connection();
   return (
     <html lang="en">
       <body className="min-h-screen antialiased">{children}</body>
