@@ -1,4 +1,5 @@
 import type { Sql } from "postgres";
+import { toVectorLiteral } from "../../src/lib/ai/embeddings";
 import { fromRow, masteryRowSchema } from "../../src/lib/mastery/service";
 import type { BankStore } from "../../src/lib/questions/bank";
 import {
@@ -19,6 +20,7 @@ import {
   type StoredMessage,
   type TutorStore,
 } from "../../src/lib/tutor/store";
+import type { Passage, SearchFilter, SearchPort } from "../../src/lib/tutor/retrieval";
 import { commitParams } from "../../src/lib/tutor/supabase-store";
 import { sessionStateSchema, PHASES } from "../../src/lib/tutor/state";
 import { z } from "zod";
@@ -178,5 +180,43 @@ export class PostgresBankStore implements BankStore {
       [id],
     );
     return row ? storedKeySchema.parse(row) : null;
+  }
+}
+
+// ── syllabus search ─────────────────────────────────────────────────────────────────────────────
+
+const toPassage = (row: Record<string, unknown>): Passage => ({
+  id: String(row.chunk_key),
+  objectiveId: (row.learning_objective_id as string | null) ?? null,
+  section: String(row.section_type),
+  text: String(row.content),
+  page: (row.page as number | null) ?? null,
+  pageEnd: (row.page_end as number | null) ?? null,
+});
+
+/** The retrieval functions of migration 0005, called over a direct connection. */
+export class PostgresSearchPort implements SearchPort {
+  constructor(private readonly sql: Sql) {}
+
+  async text(query: string, filter: SearchFilter, limit: number): Promise<Passage[]> {
+    const rows = await this.sql`
+      select * from public.search_curriculum_chunks_text(
+        ${query}, ${limit}, ${filter.grade}::smallint, 'mathematics', ${filter.topic})`;
+    return rows.map(toPassage);
+  }
+
+  async vector(embedding: number[], filter: SearchFilter, limit: number): Promise<Passage[]> {
+    const rows = await this.sql`
+      select * from public.match_curriculum_chunks(
+        ${toVectorLiteral(embedding)}::extensions.vector, ${limit}, ${filter.grade}::smallint,
+        'mathematics', ${filter.topic})`;
+    return rows.map(toPassage);
+  }
+
+  async forObjective(objectiveId: string): Promise<Passage | null> {
+    const [row] = await this.sql`
+      select * from public.curriculum_chunks
+      where learning_objective_id = ${objectiveId} and section_type = 'COMPETENCY_OBJECTIVE'`;
+    return row ? toPassage(row) : null;
   }
 }

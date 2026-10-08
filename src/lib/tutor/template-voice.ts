@@ -184,7 +184,9 @@ export function templateText(move: TutorMove): string {
       break;
 
     case "ANSWER_QUESTION":
-      return "Good question! I can help most with a hint or an example for this goal. Use the Hint button, or ask your teacher about this one.";
+      return move.quote
+        ? "Good question! The syllabus says something about it, in the box below. If you are still unsure, ask your teacher."
+        : "Good question! I can help most with a hint or an example for this goal. Use the Hint button, or ask your teacher about this one.";
   }
   // unreachable: every move kind returns above
   return "";

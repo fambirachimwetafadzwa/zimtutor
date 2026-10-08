@@ -125,7 +125,17 @@ export type TutorMove =
       /** The open question, if any, and its secret. */
       stem?: string;
       secret?: SecretAnswer;
+      /** Official syllabus text found for this question (grade and topic matched). */
+      passages?: readonly PassageFacts[];
+      /** One line of those passages, the syllabus's own words, that the screen shows apart from the tutor's. */
+      quote?: string;
     };
+
+/** A piece of the syllabus the tutor may draw on when answering. */
+export interface PassageFacts {
+  text: string;
+  page: number | null;
+}
 
 export type MoveKind = TutorMove["kind"];
 

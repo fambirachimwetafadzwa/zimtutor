@@ -152,6 +152,14 @@ export function factsFor(move: TutorMove): string[] {
         "purpose: answer the child's own question about this goal in a few kind, simple sentences.",
         "if the question is not about this goal, or you are not sure, say so kindly and use the draft.",
         ...objectiveLines(o),
+        ...(move.passages && move.passages.length > 0
+          ? [
+              "official syllabus passages you may draw on (answer from these, and say so if they do not answer the question):",
+              ...move.passages.map(
+                (p, i) => `[${i + 1}]${p.page ? ` (page ${p.page})` : ""} ${clean(p.text, 700)}`,
+              ),
+            ]
+          : []),
         ...(move.stem
           ? [
               `the question the child is working on (still open): ${clean(move.stem)}`,

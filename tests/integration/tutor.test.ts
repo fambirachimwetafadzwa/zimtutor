@@ -4,6 +4,8 @@ import { learnerEmail } from "../../src/lib/auth/credentials";
 import { provisionLearner } from "../../src/lib/auth/learners";
 import { createSupabaseProvisioningPorts } from "../../src/lib/auth/learners.server";
 import { SupabaseBankStore, getQuestionKey } from "../../src/lib/questions/bank";
+import { createLocalHashProvider } from "../../src/lib/ai/embeddings";
+import { SupabaseSearchPort, bestQuote, createRetriever } from "../../src/lib/tutor/retrieval";
 import { act, startOrResume, type TutorDeps } from "../../src/lib/tutor/service";
 import { SupabaseCurriculumPort } from "../../src/lib/tutor/supabase-curriculum";
 import { SupabaseTutorStore } from "../../src/lib/tutor/supabase-store";
@@ -141,6 +143,23 @@ describe.skipIf(!configured)("the tutor (real API)", () => {
       .eq("learner_id", learner.id)
       .eq("question_id", id);
     expect(count).toBe(1);
+  });
+
+  it("finds the syllabus text for a child's question through the search functions", async () => {
+    const retriever = createRetriever(new SupabaseSearchPort(service), createLocalHashProvider());
+    const facts = (await deps.curriculum.facts(GOAL))!;
+    const message = "why do we carry the one?";
+    const passages = await retriever.passages({ message, objective: facts });
+    expect(passages.map((p) => p.id)).toContain(`obj:${GOAL}`);
+    const grades = await service
+      .from("curriculum_chunks")
+      .select("chunk_key, grade, topic")
+      .in(
+        "chunk_key",
+        passages.map((p) => p.id),
+      );
+    for (const row of grades.data!) expect([row.grade, row.topic]).toEqual([5, "Operations"]);
+    expect(bestQuote(passages, message)?.line.toLowerCase()).toContain("carry");
   });
 
   it("keeps a stale step from being applied twice", async () => {

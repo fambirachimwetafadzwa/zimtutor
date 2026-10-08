@@ -62,6 +62,7 @@ import {
   type StoredMessage,
   type TutorStore,
 } from "./store";
+import { bestQuote, type Passage, type Retriever } from "./retrieval";
 import { NOTICES } from "./template-voice";
 import type { TutorActionName } from "./actions";
 import type { MessageView, TutorView } from "./view";
@@ -120,6 +121,8 @@ export interface TutorDeps {
   /** Named in the reply to a worrying message; null names none. */
   helpline?: Helpline | null;
   now?: () => Date;
+  /** Finds syllabus text for a child's own question. Without one the tutor answers from the goal alone. */
+  retriever?: Retriever;
   /** A seed for choosing questions, for repeatable tests. */
   seed?: () => string;
   onEvent?: (event: TutorEvent) => void;
@@ -180,6 +183,19 @@ const citationOf = (facts: ObjectiveFacts): string =>
   facts.source.page !== null
     ? `${facts.source.title}, page ${facts.source.pageLabel ?? facts.source.page}`
     : facts.source.title;
+
+/** Syllabus text for a child's question; a failed search must never stop a lesson. */
+async function findPassages(ctx: Ctx, message: string): Promise<Passage[]> {
+  if (!ctx.deps.retriever) return [];
+  try {
+    return await ctx.deps.retriever.passages({ message, objective: ctx.facts });
+  } catch {
+    return [];
+  }
+}
+
+const citationFor = (facts: ObjectiveFacts, page: number | null): string =>
+  page !== null ? `${facts.source.title}, page ${page}` : facts.source.title;
 
 function misconceptionFacts(tags: readonly string[]): MisconceptionFacts | undefined {
   for (const tag of tags) {
@@ -741,20 +757,39 @@ const handlers: { [K in TutorActionName]: Handler<Extract<TutorAction, { type: K
         break;
     }
 
-    // A real question for the tutor. The voice answers inside the guards; the open question's answer
-    // stays out of reach of the model and of the reply.
+    // A real question for the tutor. Official syllabus text is looked up (this grade and topic only);
+    // the voice answers inside the guards, and the open question's answer stays out of reach of both
+    // the model and the reply.
     const secret = open
       ? await loadQuestion(ctx.deps, open.id).then(({ key, pub }) => ({
           stem: pub.stem,
           secret: secretFromKey({ spec: key.spec, display: key.display }, pub.options),
         }))
       : undefined;
-    await speak(ctx, step, {
-      kind: "ANSWER_QUESTION",
-      objective: ctx.facts,
-      learnerMessage: screen.text,
-      ...(secret ?? {}),
-    });
+    const passages = await findPassages(ctx, screen.text);
+    const quote = bestQuote(passages, screen.text);
+    await speak(
+      ctx,
+      step,
+      {
+        kind: "ANSWER_QUESTION",
+        objective: ctx.facts,
+        learnerMessage: screen.text,
+        ...(secret ?? {}),
+        ...(passages.length > 0
+          ? { passages: passages.map((p) => ({ text: p.text, page: p.page })) }
+          : {}),
+        ...(quote ? { quote: quote.line } : {}),
+      },
+      quote
+        ? {
+            meta: {
+              quotes: [{ label: "From the syllabus", items: [quote.line] }],
+              citation: citationFor(ctx.facts, quote.passage.page),
+            },
+          }
+        : {},
+    );
     return true;
   },
 
