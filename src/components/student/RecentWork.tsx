@@ -9,13 +9,16 @@ const MODE_WORDS: Record<RecentItem["mode"], string> = {
 };
 
 /** Finished lessons: what was worked on, how it went, in counts and words. Never what was said. */
-export function RecentWork({ items }: { items: readonly RecentItem[] }) {
+export function RecentWork({
+  items,
+  empty = "When you finish a lesson, it will show up here.",
+}: {
+  items: readonly RecentItem[];
+  /** What to say when there is nothing yet. */
+  empty?: string;
+}) {
   if (items.length === 0)
-    return (
-      <p className="rounded-2xl border border-border bg-surface p-5 text-lg">
-        When you finish a lesson, it will show up here.
-      </p>
-    );
+    return <p className="rounded-2xl border border-border bg-surface p-5 text-lg">{empty}</p>;
   return (
     <ul className="flex flex-col gap-3">
       {items.map((item) => (

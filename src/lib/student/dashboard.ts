@@ -22,7 +22,7 @@ export interface Goal {
   subtopicName: string;
 }
 
-const goalOf = (o: PathObjective): Goal => ({
+export const goalOf = (o: PathObjective): Goal => ({
   id: o.id,
   text: o.text,
   grade: o.grade,
@@ -231,6 +231,63 @@ function mainCard(
   };
 }
 
+/** Finished lessons, newest first, as counts and outcomes (never words). */
+export function recentWork(sessions: readonly SessionRow[], path: Path): RecentItem[] {
+  return sessions
+    .filter((s) => s.status !== "ACTIVE" && s.summary && s.summary.questions > 0)
+    .sort((a, b) => Date.parse(b.endedAt ?? "") - Date.parse(a.endedAt ?? ""))
+    .slice(0, RECENT_SHOWN)
+    .map((s) => {
+      const summary = s.summary!;
+      const goal = path.byId.get(s.objectiveId);
+      return {
+        sessionId: s.id,
+        goal: goal ? goalOf(goal) : null,
+        endedAt: s.endedAt,
+        questions: summary.questions,
+        firstTry: summary.firstTry,
+        hintsUsed: summary.hintsUsed,
+        minutes: summary.minutes,
+        outcome: summary.masteryEnd ? STATE_LABELS[summary.masteryEnd.state] : null,
+        mode: summary.mode,
+      };
+    });
+}
+
+/** The four counts, from a progress summary. */
+export function masteryTiles(
+  progress: Pick<
+    LearnerPlan["progress"],
+    "mastered" | "inProgress" | "review" | "notStarted" | "total"
+  >,
+): MasteryTiles {
+  return {
+    mastered: progress.mastered,
+    inProgress: progress.inProgress,
+    review: progress.review,
+    notStarted: progress.notStarted,
+    total: progress.total,
+  };
+}
+
+/** One card per topic. `suggested` is the topic the planner points at (none for a parent's view). */
+export function topicCards(
+  progress: LearnerPlan["progress"],
+  suggested: string | null,
+): TopicCard[] {
+  return progress.topics.map((t) => ({
+    topicId: t.topicId,
+    topicCode: t.topicCode,
+    name: t.topicName,
+    percent: percent(t.mastery),
+    mastered: t.mastered,
+    inProgress: t.inProgress,
+    review: t.review,
+    total: t.total,
+    recommended: suggested === t.topicId,
+  }));
+}
+
 export function buildDashboard(input: {
   learner: LearnerPlan;
   path: Path;
@@ -256,48 +313,14 @@ export function buildDashboard(input: {
     });
   }
 
-  const recent: RecentItem[] = sessions
-    .filter((s) => s.status !== "ACTIVE" && s.summary && s.summary.questions > 0)
-    .sort((a, b) => Date.parse(b.endedAt ?? "") - Date.parse(a.endedAt ?? ""))
-    .slice(0, RECENT_SHOWN)
-    .map((s) => {
-      const summary = s.summary!;
-      const goal = path.byId.get(s.objectiveId);
-      return {
-        sessionId: s.id,
-        goal: goal ? goalOf(goal) : null,
-        endedAt: s.endedAt,
-        questions: summary.questions,
-        firstTry: summary.firstTry,
-        hintsUsed: summary.hintsUsed,
-        minutes: summary.minutes,
-        outcome: summary.masteryEnd ? STATE_LABELS[summary.masteryEnd.state] : null,
-        mode: summary.mode,
-      };
-    });
+  const recent = recentWork(sessions, path);
 
   return {
     grade: learner.grade,
     main,
     practice,
-    topics: progress.topics.map((t) => ({
-      topicId: t.topicId,
-      topicCode: t.topicCode,
-      name: t.topicName,
-      percent: percent(t.mastery),
-      mastered: t.mastered,
-      inProgress: t.inProgress,
-      review: t.review,
-      total: t.total,
-      recommended: plan.recommendedTopic?.topicId === t.topicId,
-    })),
-    tiles: {
-      mastered: progress.mastered,
-      inProgress: progress.inProgress,
-      review: progress.review,
-      notStarted: progress.notStarted,
-      total: progress.total,
-    },
+    topics: topicCards(progress, plan.recommendedTopic?.topicId ?? null),
+    tiles: masteryTiles(progress),
     recent,
   };
 }

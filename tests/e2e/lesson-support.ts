@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Locator, Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { SupabaseBankStore, getQuestionKey } from "../../src/lib/questions/bank";
 import { toPublicQuestion, type QuestionKey } from "../../src/lib/questions/bank-rows";
 import type { LearnerAnswer } from "../../src/lib/marking/spec";
@@ -105,3 +105,52 @@ export const buttons = {
   explain: "Explain it again",
   stop: "Stop for now",
 } as const;
+
+/** Press "Check my answer" unless the form has already sent the answer (true/false buttons). */
+export async function submit(page: Page, kind: Awaited<ReturnType<typeof fillAnswer>>) {
+  if (kind !== "true-false") await page.getByRole("button", { name: buttons.check }).click();
+}
+
+/** Click "Next" until a question is waiting for an answer. */
+export async function readyForQuestion(page: Page) {
+  const tries = page.getByText(/^Tries left: \d/);
+  // only an enabled button counts: while a step is being worked out, "Next" is switched off
+  const next = page.getByRole("button", { name: buttons.next, exact: true, disabled: false });
+  for (let i = 0; i < 8; i++) {
+    await expect(next.or(tries)).toBeVisible();
+    if (await tries.isVisible()) return;
+    await next.click({ timeout: 5_000 });
+  }
+  await expect(tries).toBeVisible();
+}
+
+/**
+ * Work one question the way a child would, start to finish: open the goal, press Start, go through
+ * the explanation and example, answer the first question rightly and leave the lesson.
+ */
+export async function finishOneLesson(
+  page: Page,
+  service: SupabaseClient,
+  learnerId: string,
+  goalPath: string,
+  options: { say?: string } = {},
+) {
+  await page.goto(goalPath);
+  await page.getByRole("button", { name: buttons.start }).click();
+  await readyForQuestion(page);
+  const { key, question } = await openQuestion(service, learnerId);
+  const kind = await fillAnswer(page, key, question);
+  await submit(page, kind);
+  await expect(page.getByRole("button", { name: buttons.nextQuestion })).toBeVisible();
+  if (options.say) {
+    // a question of their own, in their own words
+    await page.getByText("Ask ZimTutor a question").click();
+    await page.getByRole("textbox", { name: /Type your question/ }).fill(options.say);
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(
+      page.getByRole("list", { name: "Your lesson so far" }).getByText(options.say),
+    ).toBeVisible();
+  }
+  await page.getByRole("button", { name: buttons.stop }).click();
+  await expect(page.getByRole("heading", { name: "That lesson is finished" })).toBeVisible();
+}

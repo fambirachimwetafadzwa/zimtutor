@@ -62,6 +62,12 @@ export default async function ParentHome({ searchParams }: { searchParams: Searc
                 Grade {l.grade as number} · username{" "}
                 <span className="font-mono">{l.username as string}</span>
               </p>
+              <Link
+                href={`/parent/learners/${l.profile_id as string}`}
+                className="mt-3 inline-flex min-h-11 items-center rounded-xl border-2 border-brand px-5 font-bold text-brand hover:bg-brand hover:text-brand-contrast"
+              >
+                See progress
+              </Link>
             </li>
           ))}
         </ul>

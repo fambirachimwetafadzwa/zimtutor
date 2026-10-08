@@ -3,7 +3,7 @@ import path from "node:path";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import type { LearnerAnswer } from "../../src/lib/marking/spec";
 import type { PublicQuestion, QuestionKey } from "../../src/lib/questions/bank-rows";
-import { buttons, fillAnswer, openQuestion } from "./lesson-support";
+import { buttons, fillAnswer, openQuestion, readyForQuestion, submit } from "./lesson-support";
 import {
   addLearner,
   serviceClient,
@@ -70,11 +70,6 @@ function wrongAnswer(key: QuestionKey, question: PublicQuestion): LearnerAnswer 
   }
 }
 
-/** Press "Check my answer" unless the form has already sent the answer (true/false buttons). */
-async function submit(page: Page, kind: Awaited<ReturnType<typeof fillAnswer>>) {
-  if (kind !== "true-false") await page.getByRole("button", { name: buttons.check }).click();
-}
-
 async function learnerIdOf(username: string): Promise<string> {
   const { data, error } = await serviceClient()
     .from("learner_profiles")
@@ -92,19 +87,6 @@ async function sessionCount(learnerId: string): Promise<number> {
     .eq("learner_id", learnerId);
   if (error) throw error;
   return count ?? 0;
-}
-
-/** Click "Next" until a question is waiting for an answer. */
-async function readyForQuestion(page: Page) {
-  const tries = page.getByText(/^Tries left: \d/);
-  // only an enabled button counts: while a step is being worked out, "Next" is switched off
-  const next = page.getByRole("button", { name: buttons.next, exact: true, disabled: false });
-  for (let i = 0; i < 8; i++) {
-    await expect(next.or(tries)).toBeVisible();
-    if (await tries.isVisible()) return;
-    await next.click({ timeout: 5_000 });
-  }
-  await expect(tries).toBeVisible();
 }
 
 test.describe("a learner at work", () => {

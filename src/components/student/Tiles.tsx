@@ -1,7 +1,14 @@
 import type { MasteryTiles } from "@/lib/student/dashboard";
 
 /** How many goals are where. The four always add up to the total. */
-export function Tiles({ tiles }: { tiles: MasteryTiles }) {
+export function Tiles({
+  tiles,
+  note = `${tiles.total} goals in your grade that ZimTutor can practise with you.`,
+}: {
+  tiles: MasteryTiles;
+  /** The line under the tiles. */
+  note?: string;
+}) {
   const items = [
     { label: "Mastered", value: tiles.mastered, style: "border-emerald-300 bg-emerald-50" },
     { label: "Working on", value: tiles.inProgress, style: "border-sky-300 bg-sky-50" },
@@ -18,9 +25,7 @@ export function Tiles({ tiles }: { tiles: MasteryTiles }) {
           </li>
         ))}
       </ul>
-      <p className="text-sm text-muted">
-        {tiles.total} goals in your grade that ZimTutor can practise with you.
-      </p>
+      <p className="text-sm text-muted">{note}</p>
     </section>
   );
 }
