@@ -85,6 +85,13 @@ const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** The strings that would give the answer away if a hint contained them. */
 export function answerForms(question: GeneratedQuestion): string[] {
+  return answerFormsFrom(question);
+}
+
+/** The same, from just what the stored key and the learner's view hold. */
+export function answerFormsFrom(
+  question: Pick<GeneratedQuestion, "marking" | "correctAnswer" | "options">,
+): string[] {
   const forms = new Set<string>();
   const add = (text: string) => {
     const t = text.trim();
@@ -120,12 +127,20 @@ export function answerForms(question: GeneratedQuestion): string[] {
   return [...forms];
 }
 
+/** The first answer form that `text` contains as a whole word or number, or null. */
+export function findLeak(text: string, forms: readonly string[]): string | null {
+  for (const form of forms) {
+    const pattern = new RegExp(`(?<![\\w.,/])${escapeRegExp(form)}(?![\\w]|[.,]\\d|/\\d)`, "i");
+    if (pattern.test(text)) return form;
+  }
+  return null;
+}
+
 export function hintLeaks(question: GeneratedQuestion): Problem[] {
   const problems: Problem[] = [];
   for (const form of answerForms(question)) {
-    const pattern = new RegExp(`(?<![\\w.,/])${escapeRegExp(form)}(?![\\w]|[.,]\\d|/\\d)`, "i");
     question.hints.forEach((hint, i) => {
-      if (pattern.test(hint))
+      if (findLeak(hint, [form]) !== null)
         problems.push({
           code: "HINT_LEAKS_ANSWER",
           detail: `hint ${i + 1} contains the answer "${form}": ${hint}`,

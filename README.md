@@ -128,6 +128,46 @@ objective + difficulty + seed ─► template ─► question + answer key + hin
   the form of dates in "SI notation" (year-month-day), the unit _are_ (100 m²), and the exchange rates
   in exchange-rate problems (made-up, labelled as such).
 
+## The AI layer and child safety
+
+The tutor works with **no language model at all**. A model, when one is configured, only _phrases_
+what the application has already decided; it never marks an answer, never calculates mastery and is
+never shown the answer to a question the child has not solved.
+
+```
+learner message ─► safety screen (deterministic) ─► fixed reply, or on to the tutor
+tutor move (facts) ─► plain template text (the draft) ─► [model rewrites the draft] ─► output guards
+   ─► the model's words if every guard passes, otherwise the template text
+```
+
+- **Providers** (`src/lib/ai/llm`): the official Anthropic SDK, any server that speaks
+  `POST /chat/completions` (other vendors, Azure, OpenRouter, vLLM, Ollama), and an offline `mock`.
+  The model name is configuration (`AI_MODEL`), never code. Timeouts are short and retries few: a
+  child is waiting, and the template text is the fallback.
+- **Safety screen** (`src/lib/ai/safety.ts`, rules in `patterns.ts`): everything a child types is
+  checked by plain regular expressions before anything else. Personal details (phone numbers,
+  addresses, e-mail, links, passwords, ID numbers) are never forwarded and never stored (the record
+  keeps `[removed]`); worrying messages (harm, abuse, fear, bullying, hunger) get a warm fixed reply
+  that points to trusted adults and a child helpline; attempts to move to other apps, to change the
+  tutor's rules and unkind words get a short fixed reply. Messages with personal details or worrying
+  content are stored flagged so an administrator can review them (the only private-chat rows an
+  administrator can read). Maths such as `4 305 000`, `0.5 0.25` or `0 1 2 3 4` is not mistaken for a
+  phone number.
+- **Output guards** (`src/lib/ai/guards.ts`): a model reply is used only if it gives away no answer
+  to an open question (digits, words, option letters, true/false, a whole ordering, a matching pair),
+  introduces no number the application did not supply (and no wrong digit inside a sum), does not
+  contradict the verdict ("well done" after a wrong answer), contains no links, contacts or personal
+  questions, claims neither to be a person nor to speak for the exam board, uses no secrecy, guilt or
+  pressure to stay, and is plain text of a child-sized length that was not cut off.
+- **Circuit breaker** (`src/lib/tutor/voice.ts`): after three failures in a row the model is left
+  alone for a minute, so a provider outage costs nothing but warmth.
+- **Limits, stated plainly.** The screen and the guards are a net, not a guarantee: they cannot
+  understand every way a child might say something (other languages, spelling, code words), and a
+  model could in principle word a wrong idea in a way no rule catches. The deployment still needs a
+  person who reads the flagged messages and a written safeguarding procedure for what to do about
+  them. `CHILD_HELPLINE_*` names the helpline in the reply to a worrying message; the default
+  (Childline Zimbabwe, 116) must be confirmed before launch.
+
 ## The curriculum data model
 
 The syllabus prints, for every sub-topic, a table of rows: **Objectives · Content · Suggested notes
@@ -213,6 +253,9 @@ src/lib/marking/        deterministic answer marking
 src/lib/mastery/        per-objective mastery engine and its persistence
 src/lib/misconceptions/ misconception registry and diagnosis
 src/lib/questions/      question templates, generator, verifier, question bank
+src/lib/ai/             language-model providers, safety screen, output guards, embeddings
+src/lib/tutor/          tutor moves, template wording, prompts, voice (model + fallback)
+src/lib/adaptive/       what to learn next: planner and progress summaries
 src/lib/                other domain logic (auth, db helpers, ai/embeddings, …)
 src/app/                Next.js routes
 scripts/                CLI entry points

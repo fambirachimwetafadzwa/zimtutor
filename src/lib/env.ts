@@ -30,9 +30,12 @@ const serverSchema = z.object({
   supabaseServiceRoleKey: nonEmpty,
   aiProvider: z.enum(["anthropic", "openai-compatible", "mock"]),
   aiModel: z.string().optional(),
+  aiEffort: z.enum(["low", "medium", "high", "xhigh", "max"]).optional(),
   anthropicApiKey: z.string().optional(),
   openaiCompatibleBaseUrl: z.string().optional(),
   openaiCompatibleApiKey: z.string().optional(),
+  childHelplineName: z.string().optional(),
+  childHelplineNumber: z.string().optional(),
   embeddingProvider: z.enum(["openai-compatible", "local-hash"]),
   embeddingModel: z.string(),
   embeddingApiKey: z.string().optional(),
@@ -62,6 +65,7 @@ const publicNames: Record<string, string> = {
 const serverNames: Record<string, string> = {
   supabaseServiceRoleKey: "SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY)",
   aiProvider: "AI_PROVIDER",
+  aiEffort: "AI_EFFORT (low, medium, high, xhigh or max)",
   embeddingProvider: "EMBEDDING_PROVIDER",
   embeddingModel: "EMBEDDING_MODEL",
 };
@@ -103,9 +107,12 @@ export function readServerEnv(): ServerEnv {
     supabaseServiceRoleKey: blankToUndefined(e.SUPABASE_SERVICE_ROLE_KEY ?? e.SUPABASE_SECRET_KEY),
     aiProvider: blankToUndefined(e.AI_PROVIDER) ?? "mock",
     aiModel: blankToUndefined(e.AI_MODEL),
+    aiEffort: blankToUndefined(e.AI_EFFORT),
     anthropicApiKey: blankToUndefined(e.ANTHROPIC_API_KEY),
     openaiCompatibleBaseUrl: blankToUndefined(e.OPENAI_COMPATIBLE_BASE_URL),
     openaiCompatibleApiKey: blankToUndefined(e.OPENAI_COMPATIBLE_API_KEY),
+    childHelplineName: blankToUndefined(e.CHILD_HELPLINE_NAME),
+    childHelplineNumber: blankToUndefined(e.CHILD_HELPLINE_NUMBER),
     embeddingProvider: blankToUndefined(e.EMBEDDING_PROVIDER) ?? "local-hash",
     embeddingModel: blankToUndefined(e.EMBEDDING_MODEL) ?? "text-embedding-3-small",
     embeddingApiKey: blankToUndefined(e.EMBEDDING_API_KEY),
@@ -115,7 +122,10 @@ export function readServerEnv(): ServerEnv {
 
   const env = parsed.data;
   const missing: string[] = [];
-  if (env.aiProvider === "anthropic" && !env.anthropicApiKey) missing.push("ANTHROPIC_API_KEY");
+  if (env.aiProvider === "anthropic") {
+    if (!env.anthropicApiKey) missing.push("ANTHROPIC_API_KEY");
+    if (!env.aiModel) missing.push("AI_MODEL");
+  }
   if (env.aiProvider === "openai-compatible") {
     if (!env.openaiCompatibleBaseUrl) missing.push("OPENAI_COMPATIBLE_BASE_URL");
     if (!env.aiModel) missing.push("AI_MODEL");

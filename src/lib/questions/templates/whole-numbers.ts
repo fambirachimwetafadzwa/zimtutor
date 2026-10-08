@@ -1027,6 +1027,7 @@ const ROMAN_MAX: Record<number, number> = { 3: 10, 4: 50, 5: 20, 6: 50, 7: 50 };
 
 export const romanNumerals = defineTemplate({
   id: "num.roman",
+  version: 2,
   description: "Read, write and convert Roman numerals within the range printed for the grade.",
   covers: (o) => scoped(o, { topic: "NUM", text: /roman/i }),
   generate: ({ objective: o, difficulty: d, rng, q }) => {
@@ -1058,12 +1059,38 @@ export const romanNumerals = defineTemplate({
         : d === 3
           ? rng.pick(["toArabic", "toRoman", "matching"] as const)
           : rng.pick(["toArabic", "toRoman", "toArabic"] as const);
+    const matched = mode === "matching" ? distinctNumbers(rng, 4, () => rng.int(1, max)) : [];
+    // The hints teach HOW to read Roman numerals without stating what is asked: the symbol table and
+    // the two examples leave out any number the question is about (a single-letter numeral IS its value).
+    const asked = mode === "matching" ? matched : [n];
+    const symbols = (
+      [
+        ["I", 1],
+        ["V", 5],
+        ["X", 10],
+        ["L", 50],
+      ] as const
+    ).filter(([, value]) => value <= max && !asked.includes(value));
+    const examples = (
+      [
+        [4, 9],
+        [6, 7, 8, 11],
+      ] as const
+    ).map((values) => values.find((v) => v <= max && !asked.includes(v)));
+    const [takeAway, addOn] = examples;
     const hints = [
-      "I = 1, V = 5, X = 10, L = 50.",
-      "A smaller symbol written BEFORE a bigger one is taken away (IV = 4). Written AFTER it, it is added (VI = 6).",
+      "Roman numerals are letters. Say what each letter stands for, then decide whether to add or to take away.",
+      [
+        symbols.length > 0 ? `${symbols.map(([r, v]) => `${r} = ${v}`).join(", ")}.` : "",
+        takeAway !== undefined && addOn !== undefined
+          ? `A smaller symbol written BEFORE a bigger one is taken away (${toRoman(takeAway)} = ${takeAway}). Written AFTER it, it is added (${toRoman(addOn)} = ${addOn}).`
+          : "A smaller symbol written BEFORE a bigger one is taken away. Written AFTER it, it is added.",
+      ]
+        .filter(Boolean)
+        .join(" "),
     ];
     if (mode === "matching") {
-      const ns = distinctNumbers(rng, 4, () => rng.int(1, max));
+      const ns = matched;
       return q.matching({
         skill: "KNOWLEDGE_COMPREHENSION",
         stem: "Match each Roman numeral to the same number in Arabic numerals.",
