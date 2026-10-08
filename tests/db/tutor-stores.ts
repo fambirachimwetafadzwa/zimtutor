@@ -124,7 +124,8 @@ export class PostgresTutorStore implements TutorStore {
         ) as rev`;
       return row!.rev;
     } catch (error) {
-      if ((error as { code?: string }).code === "40001") throw new StepConflictError();
+      const code = (error as { code?: string }).code;
+      if (code === "PT409" || code === "40001") throw new StepConflictError();
       throw error;
     }
   }

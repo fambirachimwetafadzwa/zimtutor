@@ -51,8 +51,9 @@ create unique index question_attempts_try_idx
 -- p_mastery   null | {objective_id, expected_updated_at (null when the record is new), row {...},
 --                     event? {question_id?, evidence, score_before, score_after, state_before,
 --                             state_after, reason}}
--- Returns the session's new revision. SQLSTATE 40001 means "someone else changed it first": the caller
--- reads the session again and decides what to do.
+-- Returns the session's new revision. SQLSTATE PT409 (HTTP 409 through PostgREST) means "someone else
+-- changed it first": the caller reads the session again and decides what to do. (Not 40001: PostgREST
+-- 12 never answers a request whose function raises it.)
 create function public.tutor_commit(
   p_session_id uuid,
   p_expected_rev integer,
@@ -78,7 +79,7 @@ begin
     raise exception 'unknown tutor session %', p_session_id using errcode = 'P0002';
   end if;
   if v_rev <> p_expected_rev then
-    raise exception 'the tutor session has changed' using errcode = '40001';
+    raise exception 'the tutor session has changed' using errcode = 'PT409';
   end if;
 
   update public.tutor_sessions set
@@ -172,7 +173,7 @@ begin
     end if;
     get diagnostics v_count = row_count;
     if v_count = 0 then
-      raise exception 'the mastery record has changed' using errcode = '40001';
+      raise exception 'the mastery record has changed' using errcode = 'PT409';
     end if;
 
     if p_mastery -> 'event' is not null then

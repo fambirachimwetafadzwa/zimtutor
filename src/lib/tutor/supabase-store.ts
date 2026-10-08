@@ -122,7 +122,8 @@ export function commitParams(step: StepCommit) {
 }
 
 const UNIQUE_VIOLATION = "23505";
-const SERIALIZATION_FAILURE = "40001";
+/** The tutor_commit function raises PT409 (HTTP 409) when the session or the mastery record has changed. */
+const CONFLICT_CODES = new Set(["PT409", "40001"]);
 
 export class SupabaseTutorStore implements TutorStore {
   constructor(private readonly service: SupabaseClient) {}
@@ -207,7 +208,7 @@ export class SupabaseTutorStore implements TutorStore {
   async commit(step: StepCommit): Promise<number> {
     const { data, error } = await this.service.rpc("tutor_commit", commitParams(step));
     if (error) {
-      if (error.code === SERIALIZATION_FAILURE) throw new StepConflictError();
+      if (CONFLICT_CODES.has(error.code)) throw new StepConflictError();
       throw new Error(`Could not save the lesson step: ${error.message}`);
     }
     if (typeof data !== "number") throw new Error("The lesson step returned no revision.");
