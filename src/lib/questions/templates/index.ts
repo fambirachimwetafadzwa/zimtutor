@@ -8,6 +8,7 @@ import { measurementTemplates } from "./measurement";
 import { moneyTemplates } from "./money";
 import { rateTemplates } from "./rate";
 import { timeTemplates } from "./time";
+import { trueFalseTemplates } from "./true-false";
 import { rationalOperationTemplates } from "./rational-operations";
 import { wholeNumberTemplates } from "./whole-numbers";
 import { wholeOperationTemplates } from "./whole-operations";
@@ -29,6 +30,7 @@ export const ALL_TEMPLATES: readonly QuestionTemplate[] = [
   ...directionTemplates,
   ...rateTemplates,
   ...dataTemplates,
+  ...trueFalseTemplates,
 ];
 
 const byId = new Map(ALL_TEMPLATES.map((t) => [t.id, t]));

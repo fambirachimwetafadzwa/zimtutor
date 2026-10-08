@@ -559,7 +559,7 @@ export const timeConcepts = defineTemplate({
 
 // ── conversions ─────────────────────────────────────────────────────────────────────────────────
 
-interface Conversion {
+export interface Conversion {
   from: string;
   to: string;
   /** Going to a smaller unit multiplies, going to a bigger unit divides. */
@@ -572,7 +572,7 @@ interface Conversion {
   note?: string;
 }
 
-const CONVERSIONS: Conversion[] = [
+export const CONVERSIONS: Conversion[] = [
   { from: "hours", to: "days", op: "divide", per: 24, toSymbol: "day", grades: [3, 5, 6] },
   { from: "days", to: "hours", op: "multiply", per: 24, toSymbol: "h", grades: [3, 5, 6] },
   { from: "days", to: "weeks", op: "divide", per: 7, toSymbol: "week", grades: [3, 4, 5, 6] },
@@ -602,7 +602,7 @@ const CONVERSIONS: Conversion[] = [
   { from: "years", to: "decades", op: "divide", per: 10, grades: [5, 6] },
 ];
 
-const singular = (unit: string): string => unit.replace(/s$/, "");
+export const singular = (unit: string): string => unit.replace(/s$/, "");
 
 export const timeConversion = defineTemplate({
   id: "mea.time-convert",

@@ -59,14 +59,14 @@ describe("choosing the next question", () => {
 
   it("falls back to the question met longest ago when an objective has only a few questions", async () => {
     const store = new MemoryBankStore();
-    const small = OBJECTIVES.find((o) => o.id === "G3-MEA-TIME-005")!; // convert hours to days
+    const small = OBJECTIVES.find((o) => o.id === "G3-NUM-NUMERATION-SYSTEM-001")!; // Roman numerals I to X
     const order: string[] = [];
     // meet every different question the objective has at this level
     for (let i = 0; i < 40; i++) {
       const picked = await pickQuestion(store, {
         learnerId: learner,
         objective: small,
-        difficulty: 1,
+        difficulty: 4,
         seed: `t${i}`,
       });
       if (!order.includes(picked.id)) order.push(picked.id);
@@ -77,7 +77,7 @@ describe("choosing the next question", () => {
     const again = await pickQuestion(store, {
       learnerId: learner,
       objective: small,
-      difficulty: 1,
+      difficulty: 4,
       seed: "again",
     });
     expect(order).toContain(again.id);

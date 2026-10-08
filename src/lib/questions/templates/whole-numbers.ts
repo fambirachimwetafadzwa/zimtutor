@@ -403,7 +403,7 @@ export const expandedNotation = defineTemplate({
 // ── comparing and ordering ──────────────────────────────────────────────────────────────────────
 
 /** Two numbers that first differ in the place chosen by the difficulty (later places = harder). */
-function closePair(rng: Rng, digits: number, difficulty: number): [number, number] {
+export function closePair(rng: Rng, digits: number, difficulty: number): [number, number] {
   for (let tries = 0; tries < 200; tries++) {
     const a = makeWhole(rng, digits, { zero: difficulty >= 4 });
     const ds = String(a).split("").map(Number);

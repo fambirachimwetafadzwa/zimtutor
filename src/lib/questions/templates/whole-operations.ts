@@ -92,7 +92,7 @@ const pickColumns = (rng: Rng, digits: number, count: number): number[] =>
   );
 
 /** Digit-by-digit sum with no carrying: what a learner gets who forgets to carry. */
-function sumWithoutCarrying(a: number, b: number): number {
+export function sumWithoutCarrying(a: number, b: number): number {
   const x = columns(a);
   const y = columns(b);
   const out = Array.from(
@@ -103,7 +103,7 @@ function sumWithoutCarrying(a: number, b: number): number {
 }
 
 /** Digit-by-digit difference taking the smaller from the larger in every column. */
-function differenceSmallerFromLarger(a: number, b: number): number {
+export function differenceSmallerFromLarger(a: number, b: number): number {
   const x = columns(a);
   const y = columns(b);
   const out = x.map((d, i) => Math.abs(d - (y[i] ?? 0)));

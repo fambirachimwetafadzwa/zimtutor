@@ -304,7 +304,8 @@ describe("prompts", () => {
       const whole = [prompt.request.system, ...prompt.request.messages.map((m) => m.content)].join(
         "\n",
       );
-      expect(whole, move.kind).toContain(question.stem);
+      // prompts are written on one line per fact, so runs of spaces in a stem are single spaces there
+      expect(whole, move.kind).toContain(question.stem.replace(/\s+/g, " "));
       expect(whole, `${move.kind} leaks ${answer}`).not.toContain(`answer: ${answer}`);
       expect(whole).toMatch(/do not solve the question/i);
     }
