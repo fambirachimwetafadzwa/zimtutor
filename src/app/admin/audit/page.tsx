@@ -9,6 +9,11 @@ export const metadata = { title: "Audit log" };
 const ACTION_LABELS: Record<string, string> = {
   SUPPLEMENTAL_CREATED: "Added supplemental content",
   SUPPLEMENTAL_RELABELLED: "Changed a content label",
+  SAFETY_REVIEWED: "Reviewed a flagged message",
+  SAFETY_RE_REVIEWED: "Changed a decision about a flagged message",
+  QUESTION_APPROVED: "Approved a practice question",
+  QUESTION_REJECTED: "Rejected a practice question",
+  QUESTION_REOPENED: "Reopened a decision about a practice question",
 };
 
 export default async function AuditPage() {

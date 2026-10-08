@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AppPage } from "@/components/layout/PageShell";
 import { requireRole } from "@/lib/auth/session";
 import { getCurriculumDocument, listTopicSummaries } from "@/lib/curriculum/queries";
+import { countUnverified } from "@/lib/questions/review";
+import { countOpenFlagged } from "@/lib/safety/review";
 import { countSupplementalByLabel } from "@/lib/supplemental/service";
 import { SOURCE_TYPES, SOURCE_TYPE_INFO } from "@/lib/supplemental/rules";
 import { SourceTypeBadge } from "@/components/curriculum/Badges";
@@ -12,10 +14,12 @@ export const metadata = { title: "Administration" };
 export default async function AdminHome() {
   await requireRole("admin", "/admin");
   const db = await createSupabaseServerClient();
-  const [topics, document, labels] = await Promise.all([
+  const [topics, document, labels, flagged, unverified] = await Promise.all([
     listTopicSummaries(db),
     getCurriculumDocument(db),
     countSupplementalByLabel(db),
+    countOpenFlagged(db),
+    countUnverified(db),
   ]);
   const totals = topics.reduce(
     (sum, t) => ({
@@ -29,6 +33,47 @@ export default async function AdminHome() {
   return (
     <AppPage>
       <h1 className="text-3xl font-bold tracking-tight">Administration</h1>
+
+      <section aria-labelledby="attention-heading" className="flex flex-col gap-3">
+        <h2 id="attention-heading" className="text-2xl font-semibold">
+          Waiting for you
+        </h2>
+        <ul className="grid gap-4 sm:grid-cols-2">
+          <li>
+            <Link
+              href="/admin/safety"
+              className={`flex h-full flex-col gap-1 rounded-2xl border p-5 shadow-sm hover:brightness-95 ${
+                flagged.openWorrying > 0
+                  ? "border-red-300 bg-red-50"
+                  : flagged.open > 0
+                    ? "border-amber-300 bg-amber-50"
+                    : "border-border bg-surface"
+              }`}
+            >
+              <span className="text-3xl font-extrabold">{flagged.open}</span>
+              <span className="text-lg font-semibold">Flagged messages to look at</span>
+              <span className="text-sm text-muted">
+                {flagged.openWorrying > 0
+                  ? `${flagged.openWorrying} sounded worrying`
+                  : "Messages from children that the safety screen flagged"}
+              </span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/admin/questions?verification=UNVERIFIED"
+              className="flex h-full flex-col gap-1 rounded-2xl border border-border bg-surface p-5 shadow-sm hover:bg-background"
+            >
+              <span className="text-3xl font-extrabold">{unverified}</span>
+              <span className="text-lg font-semibold">Practice questions not yet checked</span>
+              <span className="text-sm text-muted">
+                Made by ZimTutor&apos;s templates; children see them as &ldquo;not part of the
+                syllabus&rdquo; until a person approves them
+              </span>
+            </Link>
+          </li>
+        </ul>
+      </section>
 
       <section aria-labelledby="curriculum-heading" className="flex flex-col gap-4">
         <h2 id="curriculum-heading" className="text-2xl font-semibold">

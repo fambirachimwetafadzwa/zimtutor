@@ -147,8 +147,11 @@ export async function finishOneLesson(
     await page.getByText("Ask ZimTutor a question").click();
     await page.getByRole("textbox", { name: /Type your question/ }).fill(options.say);
     await page.getByRole("button", { name: "Send", exact: true }).click();
+    // the words appear in the conversation, or -- when they held a phone number -- the same words
+    // with the number replaced by [removed]
+    const conversation = page.getByRole("list", { name: "Your lesson so far" });
     await expect(
-      page.getByRole("list", { name: "Your lesson so far" }).getByText(options.say),
+      conversation.getByText(options.say).or(conversation.getByText("[removed]")),
     ).toBeVisible();
   }
   await page.getByRole("button", { name: buttons.stop }).click();
