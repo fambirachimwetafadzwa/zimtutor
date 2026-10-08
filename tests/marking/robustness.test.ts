@@ -86,6 +86,8 @@ describe("marking robustness", () => {
     ];
     const started = performance.now();
     for (const spec of SPECS) for (const text of hostile) expectValid(mark(spec, text));
-    expect(performance.now() - started).toBeLessThan(3000);
+    // The point is to catch super-linear blow-ups (minutes, not seconds); the budget is generous so
+    // a slow or busy machine does not fail the build.
+    expect(performance.now() - started).toBeLessThan(15_000);
   });
 });

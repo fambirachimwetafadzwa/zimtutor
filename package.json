@@ -23,6 +23,8 @@
     "curriculum:load": "tsx scripts/curriculum-load.ts",
     "curriculum:embed": "tsx scripts/curriculum-embed.ts",
     "curriculum:audit": "tsx scripts/curriculum-audit.ts",
+    "questions:sample": "tsx scripts/questions-sample.ts",
+    "questions:coverage": "tsx scripts/questions-coverage.ts",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "admin:promote": "tsx scripts/admin-promote.ts",
     "e2e": "playwright test"

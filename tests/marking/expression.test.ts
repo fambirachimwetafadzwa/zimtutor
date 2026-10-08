@@ -5,6 +5,7 @@ import {
   leftToRightValue,
   sameValue,
 } from "../../src/lib/marking/expression";
+import { Rational } from "../../src/lib/marking/rational";
 
 const value = (text: string) => {
   const r = evaluateExpression(text);
@@ -100,8 +101,18 @@ describe("isSumOfTerms (expanded notation)", () => {
   it("rejects a sum that has the right total but is not the place-value breakdown", () => {
     expect(isSumOfTerms("4300 + 5", [4000, 300, 5])).toBe(false);
     expect(isSumOfTerms("4305", [4000, 300, 5])).toBe(false);
-    expect(isSumOfTerms("4000 + 300 + 5 + 0", [4000, 300, 5])).toBe(false);
+    // An empty place written as 0 is a fair expansion ("4000 + 300 + 0 + 5"), not a different breakdown.
+    expect(isSumOfTerms("4000 + 300 + 0 + 5", [4000, 300, 5])).toBe(true);
+    expect(isSumOfTerms("4000 + 300 + 5 + 5", [4000, 300, 5])).toBe(false);
     expect(isSumOfTerms("4000 + 300", [4000, 300, 5])).toBe(false);
     expect(isSumOfTerms("nonsense", [4000, 300, 5])).toBe(false);
+    // Decimal expansions are given as exact decimals.
+    expect(
+      isSumOfTerms("3 + 0.4 + 0.05", [
+        3,
+        Rational.parseDecimal("0.4")!,
+        Rational.parseDecimal("0.05")!,
+      ]),
+    ).toBe(true);
   });
 });

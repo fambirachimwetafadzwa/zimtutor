@@ -5,12 +5,18 @@ import { MISCONCEPTIONS, misconceptionsSql } from "../../src/lib/misconceptions/
 import { createTestDatabase, TEST_DATABASE_URL, type TestDatabase } from "./harness";
 
 describe("misconception reference data", () => {
-  it("is exactly what the migration inserts (the registry is the single source)", () => {
-    const migration = fs.readFileSync(
-      path.resolve("supabase/migrations/20261007001400_misconceptions_and_mastery_facts.sql"),
-      "utf8",
-    );
-    expect(migration).toContain(misconceptionsSql());
+  it("is exactly what the newest seeding migration inserts (the registry is the single source)", () => {
+    const dir = path.resolve("supabase/migrations");
+    const seeding = fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".sql"))
+      .sort()
+      .filter((f) =>
+        fs.readFileSync(path.join(dir, f), "utf8").includes("insert into public.misconceptions"),
+      );
+    expect(seeding.length).toBeGreaterThan(0);
+    const newest = fs.readFileSync(path.join(dir, seeding[seeding.length - 1]!), "utf8");
+    expect(newest).toContain(misconceptionsSql());
   });
 
   it("names every misconception the specification lists", () => {

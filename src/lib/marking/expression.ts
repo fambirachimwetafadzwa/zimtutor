@@ -311,7 +311,10 @@ export function leftToRightValue(source: string): Rational | null {
  * EXPANDED NOTATION ("4 305 = 4000 + 300 + 5" or "4×1000 + 3×100 + 5"), where a bare equal value
  * ("4300 + 5") must NOT count.
  */
-export function isSumOfTerms(source: string, expectedTerms: Array<number | bigint>): boolean {
+export function isSumOfTerms(
+  source: string,
+  expectedTerms: Array<number | bigint | Rational>,
+): boolean {
   const parsed = evaluateExpression(source);
   if (!parsed.ok) return false;
   const terms: Rational[] = [];
@@ -332,9 +335,11 @@ export function isSumOfTerms(source: string, expectedTerms: Array<number | bigin
   } catch {
     return false;
   }
-  if (terms.length !== expectedTerms.length) return false;
-  const remaining = expectedTerms.map((t) => Rational.of(t));
-  for (const term of terms) {
+  // "4000 + 300 + 0 + 5" is a fair expansion of 4 305: an empty place may be written as 0.
+  const written = terms.filter((t) => !t.isZero());
+  if (written.length !== expectedTerms.length) return false;
+  const remaining = expectedTerms.map((t) => (t instanceof Rational ? t : Rational.of(t)));
+  for (const term of written) {
     const index = remaining.findIndex((r) => r.equals(term));
     if (index < 0) return false;
     remaining.splice(index, 1);

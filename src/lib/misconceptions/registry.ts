@@ -227,6 +227,142 @@ export const MISCONCEPTIONS: readonly Misconception[] = [
     nudge:
       "Let's remember what each word means: which one is 'most common', which one is 'in the middle'?",
   },
+  // ── common errors in fractions, decimals and percentages ──────────────────────────────────
+  {
+    code: "FRACTION_NOTATION_CONFUSION",
+    name: "Fraction written or read upside down",
+    description:
+      "Swaps the numerator and the denominator when writing or reading a fraction (three quarters as 4/3).",
+    topic: "NUM",
+    remediation:
+      "The bottom number names the kind of part (quarters, fifths); the top number counts how many of them there are. Say the fraction in words before writing it.",
+    nudge: "Let's say it in words: which number tells how many equal parts the whole is cut into?",
+  },
+  {
+    code: "PART_WHOLE_CONFUSION",
+    name: "Part compared with part, not with the whole",
+    description:
+      "Writes the shaded parts over the unshaded parts instead of over all the equal parts (3 shaded and 5 not shaded as 3/5, not 3/8).",
+    topic: "NUM",
+    remediation:
+      "Count ALL the equal parts first: that is the denominator. Then count the shaded ones: that is the numerator.",
+    nudge: "First count every equal part in the whole picture. How many are there altogether?",
+  },
+  {
+    code: "FRACTION_COMPONENT_COMPARISON",
+    name: "Numerators and denominators compared separately",
+    description:
+      "Compares fractions by looking at the tops and bottoms as separate whole numbers (thinks 2/3 is bigger than 3/8 because 3 is bigger than 2, or ignores the denominators).",
+    topic: "NUM",
+    remediation:
+      "Rewrite both fractions with the same denominator, or draw them on equal strips, and then compare the numerators.",
+    nudge:
+      "Let's give both fractions the same bottom number first. What number do both denominators go into?",
+  },
+  {
+    code: "EQUIVALENT_FRACTION_ADDITIVE_ERROR",
+    name: "Adds instead of multiplying to make an equivalent fraction",
+    description:
+      "Adds the same number to the numerator and the denominator (1/2 → 3/4) instead of multiplying both by the same number.",
+    topic: "NUM",
+    remediation:
+      "Equivalent fractions name the same amount: both numbers are multiplied (or divided) by the same number. Check with fraction strips.",
+    nudge:
+      "To keep the same amount, what must we do to the top and bottom: add the same number, or multiply by it?",
+  },
+  {
+    code: "MIXED_IMPROPER_CONVERSION_ERROR",
+    name: "Mixed number and improper fraction mixed up",
+    description:
+      "Converts between mixed numbers and improper fractions wrongly: forgets to multiply the whole number by the denominator, or adds the whole number to the numerator.",
+    topic: "NUM",
+    remediation:
+      "Think of the wholes as parts: each whole holds as many parts as the denominator says. Count all the parts, then write them over the denominator.",
+    nudge:
+      "How many equal parts are there in ONE whole? So how many parts are there in the whole numbers?",
+  },
+  {
+    code: "PERCENT_CONVERSION_ERROR",
+    name: "Percentage conversion error",
+    description:
+      "Changes between fractions, decimals and percentages with the wrong factor (writes 1/4 as 14% or 4%).",
+    topic: "NUM",
+    remediation:
+      "A percentage is a fraction out of 100. Make the denominator 100 first (or divide 100 by the denominator) and read off the numerator.",
+    nudge: "Percent means 'out of 100'. How many hundredths is the same as this fraction?",
+  },
+  {
+    code: "FRACTION_MULTIPLICATION_ERROR",
+    name: "Fraction multiplication error",
+    description:
+      "Finds a common denominator before multiplying, adds the numerators, or multiplies only the numerators.",
+    topic: "OPS",
+    remediation:
+      "To multiply fractions, multiply the numerators together and the denominators together. A common denominator is only needed for adding and subtracting.",
+    nudge:
+      "When we multiply fractions, what do we do with the tops, and what do we do with the bottoms?",
+  },
+  {
+    code: "FRACTION_OF_QUANTITY_ERROR",
+    name: "Stops after dividing by the denominator",
+    description:
+      "Finds one part (divides by the denominator) but forgets to take the number of parts the numerator asks for, or does it the wrong way round.",
+    topic: "OPS",
+    remediation:
+      "Divide by the denominator to find one equal part, then multiply by the numerator to take that many parts.",
+    nudge: "Dividing gives the size of ONE part. How many parts does the fraction ask for?",
+  },
+  {
+    code: "MULTIPLICATION_PLACE_ERROR",
+    name: "Partial products misplaced in long multiplication",
+    description:
+      "Forgets the zero placeholder (or misaligns the rows) when multiplying by a tens digit, so the partial product is ten times too small.",
+    topic: "OPS",
+    remediation:
+      "Multiplying by the tens digit is really multiplying by tens: write a 0 in the ones place of that row first.",
+    nudge:
+      "The second row is multiplied by tens, not ones. What must we write in the ones column of that row?",
+  },
+  {
+    code: "PROFIT_LOSS_CONFUSION",
+    name: "Profit and loss confused",
+    description:
+      "Calls a loss a profit (or the other way round), or subtracts the selling price and the cost price in the wrong order.",
+    topic: "MEA",
+    remediation:
+      "Compare the selling price with the cost price: more than the cost is a profit, less is a loss. Always take the smaller from the bigger.",
+    nudge: "Did the seller get back more money than was paid, or less?",
+  },
+  {
+    code: "RATE_FORMULA_ERROR",
+    name: "Speed, distance and time formula wrong",
+    description:
+      "Uses the wrong operation for speed, distance or time (for example multiplies distance by time to find speed).",
+    topic: "MEA",
+    remediation:
+      "Use the triangle D / (S × T): cover what you want to find. Speed is distance shared by time; distance is speed times time.",
+    nudge: "Speed tells how far we go in ONE hour. Do we share the distance out, or repeat it?",
+  },
+  {
+    code: "ANGLE_SUM_ERROR",
+    name: "Wrong total for angles",
+    description:
+      "Uses the wrong total when finding a missing angle (360° on a straight line instead of 180°, or 180° around a point).",
+    topic: "MEA",
+    remediation:
+      "Angles on a straight line make a half turn (180°), angles at a point make a full turn (360°), angles in a triangle make 180°. Find the right total first, then subtract.",
+    nudge: "What is the total of the angles in this kind of figure: a half turn or a full turn?",
+  },
+  {
+    code: "PERIMETER_SIDES_MISSED",
+    name: "Not all sides added for the perimeter",
+    description:
+      "Adds only the sides that are marked (for example length + width of a rectangle) and misses the equal sides that are not marked.",
+    topic: "MEA",
+    remediation:
+      "Walk round the shape with a finger and count every side. Mark each side that has an equal partner and add all of them.",
+    nudge: "Let's walk all the way round the shape. How many sides does it have altogether?",
+  },
 ] as const;
 
 export const MISCONCEPTION_CODES = MISCONCEPTIONS.map((m) => m.code);

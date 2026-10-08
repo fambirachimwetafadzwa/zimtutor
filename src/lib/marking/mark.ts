@@ -114,6 +114,8 @@ function formAccepted(required: string | undefined, p: ParsedNumber): boolean {
       return p.form === "mixed" || p.form === "integer";
     case "percent":
       return true; // "25" and "25%" are both fine
+    case "digits":
+      return p.form === "integer" || p.form === "decimal"; // digits, not number words
     default:
       return true;
   }
@@ -220,6 +222,20 @@ function markExpression(
 ): MarkResult {
   const text = asString(answer);
   if (text === null) return invalid("EXPRESSION_EQUIVALENT", "WRONG_SHAPE_OF_ANSWER");
+  // "40,000 + 5,000": a comma before exactly three digits may be a thousands separator. As with a
+  // single number, both readings are tried and the learner gets the benefit of the doubt.
+  const withoutThousandsCommas = text.replace(/(\d),(?=\d{3}(?!\d))/g, "$1");
+  if (withoutThousandsCommas === text) return markOneExpression(spec, text);
+  const readings = [markOneExpression(spec, text), markOneExpression(spec, withoutThousandsCommas)];
+  const correct = readings.find((r) => r.status === "CORRECT");
+  if (correct) return { ...correct, signals: [...correct.signals, "AMBIGUOUS_SEPARATOR_ACCEPTED"] };
+  return readings.find((r) => r.status === "ALMOST") ?? readings[0]!;
+}
+
+function markOneExpression(
+  spec: Extract<MarkingSpec, { method: "EXPRESSION_EQUIVALENT" }>,
+  text: string,
+): MarkResult {
   const learner = evaluateExpression(text);
   if (!learner.ok)
     return invalid(
@@ -241,7 +257,12 @@ function markExpression(
     return result("EXPRESSION_EQUIVALENT", "INCORRECT", 0, [], detail);
   if (spec.kind === "expanded") {
     if (!spec.terms) throw new MarkingConfigError("An expanded-notation key needs its terms");
-    if (!isSumOfTerms(text, spec.terms))
+    if (
+      !isSumOfTerms(
+        text,
+        spec.terms.map((t) => (typeof t === "number" ? Rational.of(t) : expectedRational(t))),
+      )
+    )
       return result("EXPRESSION_EQUIVALENT", "ALMOST", 0, ["WRONG_FORM"], detail);
   }
   return result("EXPRESSION_EQUIVALENT", "CORRECT", 1, [], detail);

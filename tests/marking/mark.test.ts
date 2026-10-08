@@ -146,6 +146,22 @@ describe("EXPRESSION_EQUIVALENT", () => {
     expect(status(spec, "1 +")).toBe("INVALID_INPUT");
   });
 
+  it("accepts a comma as a thousands separator when that reading is the right one", () => {
+    const spec = {
+      method: "EXPRESSION_EQUIVALENT",
+      expression: "45000",
+      kind: "expanded",
+      terms: [40000, 5000],
+    };
+    expect(status(spec, "40,000 + 5,000")).toBe("CORRECT");
+    expect(status(spec, "40 000 + 5 000")).toBe("CORRECT");
+    expect(status(spec, "40,000 + 6,000")).toBe("INCORRECT");
+    // a decimal comma still works when that is the reading that fits
+    expect(status({ method: "EXPRESSION_EQUIVALENT", expression: "3.456 + 2" }, "3,456 + 2")).toBe(
+      "CORRECT",
+    );
+  });
+
   it("marks expanded notation by its terms, not just its total", () => {
     const spec = {
       method: "EXPRESSION_EQUIVALENT",

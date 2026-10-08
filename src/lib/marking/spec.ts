@@ -25,7 +25,7 @@ export const MARKING_METHODS = [
 export type MarkingMethod = (typeof MARKING_METHODS)[number];
 
 const numberText = z.string().trim().min(1).max(60);
-const form = z.enum(["integer", "decimal", "fraction", "mixed", "percent"]);
+const form = z.enum(["integer", "decimal", "fraction", "mixed", "percent", "digits"]);
 
 const exactNumeric = z.object({
   method: z.literal("EXACT_NUMERIC"),
@@ -43,7 +43,11 @@ const expressionEquivalent = z.object({
   expression: z.string().trim().min(1).max(160),
   /** "value": any expression with the same value. "expanded": the place-value breakdown (terms must match). */
   kind: z.enum(["value", "expanded"]).default("value"),
-  terms: z.array(z.number().int().nonnegative()).max(12).optional(),
+  /** Place-value terms, whole numbers or exact decimals as text ("0.4"): every one must appear, in any order. */
+  terms: z
+    .array(z.union([z.number().int().nonnegative(), numberText]))
+    .max(12)
+    .optional(),
 });
 
 const fractionEquivalent = z.object({
