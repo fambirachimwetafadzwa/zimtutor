@@ -17,7 +17,7 @@ export default function ErrorPage({
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center gap-6 px-6 py-16">
       <p className="text-2xl font-extrabold tracking-tight text-brand">
-        Zim<span className="text-accent">Tutor</span>
+        Zim<span className="text-accent-ink">Tutor</span>
       </p>
       <div
         role="alert"

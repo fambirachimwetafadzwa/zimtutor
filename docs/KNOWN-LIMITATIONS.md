@@ -107,10 +107,14 @@ about it. Where something is untested, it says so.
 
 ## Accessibility, reach and devices
 
-- **Not audited with assistive technology users.** The screens use real labels, headings, live
-  announcements, large targets, visible focus and a no-horizontal-scroll layout checked on a phone-sized
-  screen, but nobody who relies on a screen reader or switch has tried them, and colour contrast has
-  not been formally verified. There is no dark mode.
+- **Checked by machine, not yet by people.** An automated scan (axe, WCAG 2.0 and 2.1 levels A and AA:
+  names and labels, roles, headings, landmarks, contrast, keyboard reach) passes on every screen a
+  learner, a parent and an administrator sees and on the public pages, on a desktop and a phone-sized
+  screen, and on a gallery of every kind of question picture. It found, and the code now fixes, a
+  yellow text colour at 1.7:1 contrast, a focus ring that could hardly be seen, and a table that
+  scrolled sideways but could not be reached by keyboard. A scan cannot say whether a screen makes
+  sense to someone using a screen reader or a switch, and nobody who relies on one has tried ZimTutor.
+  WCAG 2.2 criteria (such as target size) are not scanned. There is no dark mode.
 - **No offline mode, no data-saver mode.** Pages are rendered on the server and kept small, but there
   is no service worker; a child with no connection cannot continue.
 - **Browsers tested: Chromium only** (a desktop window and a phone-sized one). Safari and Firefox have
@@ -132,7 +136,7 @@ about it. Where something is untested, it says so.
 
 ## How it was tested, and what was not
 
-- **Verified**: 2 900+ unit, real-Postgres and real-API tests; a browser suite (about 80 tests, each on a
+- **Verified**: 2 900+ unit, real-Postgres and real-API tests; a browser suite (about 100 tests, each on a
   desktop and a phone-sized Chromium) against a production build; a real fault, in a real server,
   reaching a stand-in for Sentry scrubbed. The database and API suites ran against PostgreSQL 16 with
   `pgvector`, Supabase Auth (GoTrue) and PostgREST run directly and put behind a small gateway.

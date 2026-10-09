@@ -25,7 +25,7 @@ export function GradePicker({ current }: { current?: number }) {
                 className="peer sr-only"
                 required
               />
-              <span className="flex min-h-24 flex-col items-center justify-center rounded-2xl border-2 border-border bg-surface text-xl font-bold shadow-sm peer-checked:border-brand peer-checked:bg-brand peer-checked:text-brand-contrast peer-focus-visible:outline-3 peer-focus-visible:outline-accent">
+              <span className="flex min-h-24 flex-col items-center justify-center rounded-2xl border-2 border-border bg-surface text-xl font-bold shadow-sm peer-checked:border-brand peer-checked:bg-brand peer-checked:text-brand-contrast peer-focus-visible:outline-3 peer-focus-visible:outline-brand">
                 <span className="text-sm font-medium opacity-80">Grade</span>
                 <span className="text-3xl">{g}</span>
               </span>

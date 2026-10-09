@@ -99,7 +99,8 @@ The **browser tests** (`tests/e2e`) sign up their own parents, learners and admi
 screens and work like a child, a parent and an administrator would: a lesson with a wrong try and a
 hint, a question with a phone number in it (which is never kept), a practice paper written over two
 visits, a flagged message reviewed, an account deleted. They run on a desktop and a Pixel 7-sized
-Chromium, and fail on any Content Security Policy refusal or hydration error. They need the app built
+Chromium, and fail on any Content Security Policy refusal, hydration error or WCAG A/AA problem an automated
+scan (axe) can find on any screen. They need the app built
 and started with the same Supabase settings, plus a header only the tests send for the visitor's
 address (Next.js fills in `x-forwarded-for` itself, so it cannot be used):
 

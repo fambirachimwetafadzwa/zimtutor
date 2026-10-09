@@ -6,7 +6,7 @@ import type { CurrentUser } from "@/lib/auth/session";
 export function Wordmark() {
   return (
     <Link href="/" className="text-2xl font-extrabold tracking-tight text-brand">
-      Zim<span className="text-accent">Tutor</span>
+      Zim<span className="text-accent-ink">Tutor</span>
     </Link>
   );
 }

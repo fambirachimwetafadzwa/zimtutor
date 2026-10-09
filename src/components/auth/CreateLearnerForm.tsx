@@ -56,7 +56,7 @@ export function CreateLearnerForm() {
                 className="peer sr-only"
                 required
               />
-              <span className="inline-flex min-h-12 min-w-16 items-center justify-center rounded-xl border-2 border-border bg-surface px-4 text-lg font-semibold peer-checked:border-brand peer-checked:bg-brand peer-checked:text-brand-contrast peer-focus-visible:outline-3 peer-focus-visible:outline-accent">
+              <span className="inline-flex min-h-12 min-w-16 items-center justify-center rounded-xl border-2 border-border bg-surface px-4 text-lg font-semibold peer-checked:border-brand peer-checked:bg-brand peer-checked:text-brand-contrast peer-focus-visible:outline-3 peer-focus-visible:outline-brand">
                 {g}
               </span>
             </label>

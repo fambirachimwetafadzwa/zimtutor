@@ -6,6 +6,8 @@
   --brand: #0f6b4f;
   --brand-contrast: #ffffff;
   --accent: #f2b705;
+  /* the accent as TEXT on the light backgrounds: the yellow itself is 1.7:1 there, this is over 5:1 */
+  --accent-ink: #8a6100;
   --muted: #5b6b70;
   --surface: #ffffff;
   --border: #dcd8cc;
@@ -17,6 +19,7 @@
   --color-brand: var(--brand);
   --color-brand-contrast: var(--brand-contrast);
   --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
   --color-muted: var(--muted);
   --color-surface: var(--surface);
   --color-border: var(--border);
@@ -31,8 +34,9 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Large, calm focus ring: learners include young children and keyboard users. */
+/* Large, calm focus ring: learners include young children and keyboard users. It is the brand green
+   (over 6:1 on the page), because a yellow ring on an off-white page can hardly be seen. */
 :focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 3px solid var(--brand);
   outline-offset: 2px;
 }

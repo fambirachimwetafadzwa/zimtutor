@@ -26,7 +26,13 @@ function ticks(max: number, step: number): number[] {
 
 export function TablePicture({ data }: { data: Of<"table"> }) {
   return (
-    <div className="max-w-full overflow-x-auto">
+    // a table wider than a phone scrolls sideways; a keyboard has to be able to reach it to scroll it
+    <div
+      role="region"
+      aria-label={data.caption ?? "Table"}
+      tabIndex={0}
+      className="max-w-full overflow-x-auto"
+    >
       <table className="my-2 border-collapse text-base">
         {data.caption ? (
           <caption className="pb-2 text-left font-semibold">{data.caption}</caption>
