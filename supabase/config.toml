@@ -20,7 +20,7 @@ port = 54323
 [auth]
 enabled = true
 site_url = "http://localhost:3000"
-additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+additional_redirect_urls = ["http://localhost:3000/auth/callback", "http://localhost:3000/auth/confirm"]
 jwt_expiry = 3600
 enable_signup = true
 enable_anonymous_sign_ins = false
@@ -29,3 +29,15 @@ minimum_password_length = 8
 [auth.email]
 enable_signup = true
 enable_confirmations = false
+
+# The links in these emails go to /auth/confirm with a one-time token, which works when the email is
+# opened on a different phone or in a different app from the one that asked for it (a PKCE "code" link
+# only works in the browser that asked). Hosted projects need the same templates pasted in under
+# Authentication > Email Templates; see docs/DEPLOYMENT.md.
+[auth.email.template.recovery]
+subject = "Choose a new ZimTutor password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.confirmation]
+subject = "Confirm your ZimTutor account"
+content_path = "./supabase/templates/confirmation.html"

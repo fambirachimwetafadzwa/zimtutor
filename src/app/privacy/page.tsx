@@ -14,7 +14,10 @@ export default function PrivacyPage() {
     "We never collect location. We never ask for a phone number, home address, photograph or school.",
     "Learners cannot message other people, and the tutor never shares or asks for contact details.",
     "Tutoring conversations are private to the learner. Parents see progress — topics, accuracy and what to practise — not the conversation itself.",
+    "A parent can delete a learner's account at any time, from the learner's page. That removes the account and everything saved about it: progress, lessons, questions asked, answers and practice papers. A parent can also delete their own account, which removes the accounts of the learners they alone look after.",
     "There is no advertising, and we do not sell or share learner information.",
+    "If the people who run ZimTutor turn on error reports or usage counts, those hold no names, usernames, email addresses, messages or answers: only counts, kinds of error and which part of the app.",
+    "Sign-in guesses, questions and practice papers are counted so that a script or someone guessing passwords can be slowed down. The counts are kept scrambled, so they do not name anyone.",
     "The tutor is an AI. It can make mistakes, so every answer is marked by our own maths checker, not by the AI.",
     "ZimTutor scores are practice scores. They are never official ZIMSEC results.",
   ];

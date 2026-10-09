@@ -10,23 +10,29 @@ import type {
 } from "react";
 import { useRevealed } from "./useRevealed";
 
-/** Submit button that disables itself while the Server Action runs (prevents double submits). */
+/**
+ * Submit button that disables itself while the Server Action runs (prevents double submits). `danger`
+ * is for what cannot be undone.
+ */
 export function SubmitButton({
   children,
   pendingLabel = "Please wait…",
   className = "",
+  tone = "normal",
 }: {
   children: ReactNode;
   pendingLabel?: string;
   className?: string;
+  tone?: "normal" | "danger";
 }) {
   const { pending } = useFormStatus();
+  const colour = tone === "danger" ? "bg-red-700 text-white" : "bg-brand text-brand-contrast";
   return (
     <button
       type="submit"
       disabled={pending}
       aria-disabled={pending}
-      className={`inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-brand px-6 py-3 text-lg font-semibold text-brand-contrast shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`inline-flex min-h-12 w-full items-center justify-center rounded-xl px-6 py-3 text-lg font-semibold shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 ${colour} ${className}`}
     >
       {pending ? pendingLabel : children}
     </button>

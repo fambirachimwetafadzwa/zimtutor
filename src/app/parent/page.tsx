@@ -11,6 +11,8 @@ export default async function ParentHome({ searchParams }: { searchParams: Searc
   await requireRole("parent", "/parent");
   const params = await searchParams;
   const added = typeof params.added === "string" ? params.added : null;
+  const removed = params.removed === "1";
+  const passwordChanged = params.passwordChanged === "1";
 
   // User-scoped client: row-level security returns only this parent's own children.
   const supabase = await createSupabaseServerClient();
@@ -44,6 +46,22 @@ export default async function ParentHome({ searchParams }: { searchParams: Searc
           .
         </p>
       ) : null}
+      {passwordChanged ? (
+        <p
+          role="status"
+          className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900"
+        >
+          Your password has been changed. Anywhere else you were signed in has been signed out.
+        </p>
+      ) : null}
+      {removed ? (
+        <p
+          role="status"
+          className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900"
+        >
+          The learner account and everything saved about it have been deleted.
+        </p>
+      ) : null}
       {(learners ?? []).length === 0 ? (
         <p className="rounded-2xl border border-border bg-surface p-6 text-lg">
           You haven&apos;t added a learner yet. Add one to get started.
@@ -72,6 +90,11 @@ export default async function ParentHome({ searchParams }: { searchParams: Searc
           ))}
         </ul>
       )}
+      <p className="text-base text-muted">
+        <Link href="/parent/account" className="underline underline-offset-4">
+          My account
+        </Link>
+      </p>
     </AppPage>
   );
 }

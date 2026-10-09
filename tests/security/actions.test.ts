@@ -6,7 +6,8 @@ import { describe, expect, it } from "vitest";
  * Every server action is an address anyone can post to, whatever the page that shows its button
  * looks like. So each one must find out who is asking, from the signed-in session, before it does
  * anything. This reads the action files and holds each exported action to that: the only ones that
- * do not check are the three that exist so that a visitor can sign in, sign up or sign out.
+ * do not check are the four that exist so that a visitor can sign in, sign up, sign out or ask for a
+ * new password.
  */
 
 const DIRECTORY = path.resolve("src/app/actions");
@@ -14,6 +15,10 @@ const PUBLIC_ACTIONS = new Map([
   ["loginAction", "a visitor signing in"],
   ["signUpAction", "a visitor making a parent account"],
   ["signOutAction", "signing out ends the session; it needs no one to be known"],
+  [
+    "requestPasswordResetAction",
+    "a parent who has forgotten their password is, by definition, not signed in",
+  ],
 ]);
 const GUARD = /\brequireRole\(/;
 
@@ -80,7 +85,7 @@ describe("server actions", () => {
     }
   });
 
-  it("name only the three public actions as exceptions, and all three exist", () => {
+  it("name only the four public actions as exceptions, and all four exist", () => {
     const names = new Set(all.map((a) => a.name));
     for (const name of PUBLIC_ACTIONS.keys()) expect(names.has(name), name).toBe(true);
   });

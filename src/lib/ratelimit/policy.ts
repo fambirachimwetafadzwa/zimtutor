@@ -33,6 +33,10 @@ export const LIMITS = {
   /** A learner's own questions: each may be put to a model, which costs money. */
   "tutor.ask": { max: 10, seconds: 60 },
   "tutor.ask.day": { max: 150, seconds: DAY },
+  /** Emails asking for a new password, for one address: nobody needs more than a few an hour. */
+  "reset.email": { max: 3, seconds: HOUR },
+  /** The same, from one place. */
+  "reset.address": { max: 30, seconds: HOUR },
   /** Deleting accounts: asked for rarely, and never in a hurry. */
   "account.delete": { max: 10, seconds: DAY },
   /** Changing a child's password. */
@@ -69,6 +73,9 @@ export function refusalFor(bucket: Bucket, retryAfterSeconds: number): string {
       return `Too many accounts have been made from here. Please try again in ${wait}.`;
     case "learner.create":
       return `You have added a lot of learners today. Please try again in ${wait}.`;
+    case "reset.email":
+    case "reset.address":
+      return `A lot of requests have been made. Please try again in ${wait}.`;
     case "account.delete":
     case "account.password":
       return `That has been done a lot just now. Please try again in ${wait}.`;

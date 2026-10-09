@@ -15,6 +15,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
   const params = await searchParams;
   const who = params.who === "parent" ? "parent" : "learner";
   const requested = typeof params.next === "string" ? params.next : null;
+  const deleted = params.deleted === "1";
+  const badLink = params.error === "link";
 
   const user = await getCurrentUser();
   if (user) redirect(safeRedirectPath(requested, homePathForRole(user.role)));
@@ -42,6 +44,22 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
         </p>
       ) : (
         <div className="flex flex-col gap-6">
+          {badLink ? (
+            <p
+              role="alert"
+              className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-red-900"
+            >
+              That link has run out or has been used already. Please ask for a new one.
+            </p>
+          ) : null}
+          {deleted ? (
+            <p
+              role="status"
+              className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900"
+            >
+              Your account and everything saved about it have been deleted.
+            </p>
+          ) : null}
           <div role="tablist" aria-label="Who is signing in?" className="flex gap-3">
             <Link
               role="tab"
@@ -61,6 +79,16 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
             </Link>
           </div>
           <LoginForm mode={who} next={next} />
+          {who === "parent" ? (
+            <p className="text-base">
+              <Link
+                href="/forgot-password"
+                className="font-semibold text-brand underline underline-offset-4"
+              >
+                Forgot your password?
+              </Link>
+            </p>
+          ) : null}
           {who === "parent" ? (
             <p className="text-base text-muted">
               New here?{" "}

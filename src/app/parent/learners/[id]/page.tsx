@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppPage } from "@/components/layout/PageShell";
 import { MasteredList, NeedsHandList } from "@/components/parent/GoalLists";
+import { ManageLearner } from "@/components/parent/ManageLearner";
 import { WeekTiles } from "@/components/parent/WeekTiles";
 import { PapersList } from "@/components/parent/PapersList";
 import { RecentWork } from "@/components/student/RecentWork";
@@ -96,6 +97,13 @@ export default async function LearnerOverviewPage({ params }: { params: Params }
           items={overview.recent}
           empty={`${learner.name} has not finished a lesson yet.`}
         />
+      </section>
+
+      <section aria-labelledby="account-heading" className="flex flex-col gap-3">
+        <h2 id="account-heading" className="text-2xl font-bold">
+          {learner.name}&apos;s account
+        </h2>
+        <ManageLearner childId={id} name={learner.name} username={learner.username} />
       </section>
     </AppPage>
   );

@@ -1,0 +1,15 @@
+<h2>Choose a new ZimTutor password</h2>
+<p>
+  Someone asked for a new password for the ZimTutor account that uses this email address. If it was
+  you, follow this link:
+</p>
+<p>
+  <a
+    href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password"
+    >Choose a new password</a
+  >
+</p>
+<p>
+  The link works once, for an hour, and from any phone or computer. If it was not you, ignore this
+  message: nothing has changed.
+</p>
