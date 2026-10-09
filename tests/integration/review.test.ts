@@ -265,12 +265,20 @@ describe.skipIf(!configured)("administrator review (real API)", () => {
 
     it("tells a child that an approved question was checked by a teacher", async () => {
       await decideQuestion(service, admin.id, { questionId, action: "APPROVE" });
-      const page = await listQuestions(admin.db, {
-        page: 1,
-        verification: "ADMIN_REVIEWED",
-        objective: GOAL,
-      });
-      const approved = page.rows.find((r) => r.question.id === questionId)!;
+      // other runs of this suite, and the browser tests, may have approved questions of this goal too, so
+      // the one approved here may not be on the first page of the list
+      let approved: Awaited<ReturnType<typeof listQuestions>>["rows"][number] | undefined;
+      for (let page = 1; !approved; page++) {
+        const listed = await listQuestions(admin.db, {
+          page,
+          verification: "ADMIN_REVIEWED",
+          objective: GOAL,
+        });
+        approved = listed.rows.find((r) => r.question.id === questionId);
+        if (page >= listed.pages) break;
+      }
+      if (!approved)
+        throw new Error("the approved question is not in the list of approved questions");
       expect(approved.question.label.text).toBe(
         "ZimTutor practice question (checked by a teacher)",
       );

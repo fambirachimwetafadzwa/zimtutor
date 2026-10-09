@@ -36,6 +36,10 @@ export async function openQuestion(service: SupabaseClient, learnerId: string) {
 /**
  * Put the answer into whatever form is on screen. Does not press "Check my answer". `page` may be one
  * question's own box on a page that holds many (a practice paper).
+ *
+ * The form is the one the question's `answerKind` names (how it is marked), not one guessed from the
+ * shape of the answer: the right answer to "write the next three numbers" is a list, but the child
+ * types it into one box ("34, 41, 48").
  */
 export async function fillAnswer(
   page: Page | Locator,
@@ -43,55 +47,67 @@ export async function fillAnswer(
   question: ReturnType<typeof toPublicQuestion>,
   answer: LearnerAnswer = key.display,
 ): Promise<"typed" | "choice" | "true-false" | "boxes" | "ordering" | "matching"> {
-  if (typeof answer === "boolean") {
-    await page.getByRole("button", { name: answer ? "True" : "False", exact: true }).click();
-    return "true-false";
-  }
-  if (typeof answer === "string") {
-    if (question.answerKind === "CHOICE") {
+  switch (question.answerKind) {
+    case "TRUE_FALSE": {
+      await page.getByRole("button", { name: answer ? "True" : "False", exact: true }).click();
+      return "true-false";
+    }
+    case "CHOICE": {
       // press the whole option, as a finger would, rather than the small circle
-      await page.locator(`label:has(input[type="radio"][value="${answer}"])`).click();
+      await page.locator(`label:has(input[type="radio"][value="${String(answer)}"])`).click();
       return "choice";
     }
-    await page.getByLabel("Your answer", { exact: true }).fill(answer);
-    return "typed";
-  }
-  if (Array.isArray(answer)) {
-    // ordering: bubble each item up to its place with the arrow buttons
-    const rows = page.locator("form ol > li");
-    const items = rows.locator("span.grow");
-    for (let guard = 0; guard < 200; guard++) {
-      const current = (await items.allInnerTexts()).map(plain);
-      const wrongAt = current.findIndex((item, i) => item !== plain(answer[i] ?? ""));
-      if (wrongAt === -1) break;
-      const from = current.indexOf(plain(answer[wrongAt] ?? ""));
-      if (from === -1) throw new Error(`cannot find "${answer[wrongAt]}" among ${current}`);
-      await rows.nth(from).getByRole("button", { name: /up$/ }).click();
+    case "ORDER": {
+      const wanted = answer as string[];
+      // bubble each item up to its place with the arrow buttons
+      const rows = page.locator("form ol > li");
+      const items = rows.locator("span.grow");
+      for (let guard = 0; guard < 200; guard++) {
+        const current = (await items.allInnerTexts()).map(plain);
+        if (current.length === 0)
+          throw new Error("there are no items to put in order on the screen");
+        const wrongAt = current.findIndex((item, i) => item !== plain(wanted[i] ?? ""));
+        if (wrongAt === -1) break;
+        const from = current.indexOf(plain(wanted[wrongAt] ?? ""));
+        if (from === -1) throw new Error(`cannot find "${wanted[wrongAt]}" among ${current}`);
+        await rows.nth(from).getByRole("button", { name: /up$/ }).click();
+      }
+      return "ordering";
     }
-    return "ordering";
-  }
-  if (question.matching) {
-    const selects = page.locator("form select");
-    const count = await selects.count();
-    for (let i = 0; i < count; i++) {
-      const select: Locator = selects.nth(i);
-      const id = await select.getAttribute("id");
-      const label = plain(await page.locator(`label[for="${id}"]`).innerText());
-      const left = Object.keys(answer).find((k) => plain(k) === label);
-      if (left === undefined) throw new Error(`no answer for "${label}"`);
-      await select.selectOption(String(answer[left]));
+    case "MATCH": {
+      const pairs = answer as Record<string, string>;
+      const selects = page.locator("form select");
+      const count = await selects.count();
+      if (count === 0) throw new Error("there is nothing to match on the screen");
+      for (let i = 0; i < count; i++) {
+        const select: Locator = selects.nth(i);
+        const id = await select.getAttribute("id");
+        const label = plain(await page.locator(`label[for="${id}"]`).innerText());
+        const left = Object.keys(pairs).find((k) => plain(k) === label);
+        if (left === undefined) throw new Error(`no answer for "${label}"`);
+        await select.selectOption(String(pairs[left]));
+      }
+      return "matching";
     }
-    return "matching";
+    case "BOXES": {
+      // several boxes, in the order of the question's answer fields
+      const parts = answer as Record<string, string>;
+      const fields = question.answerFields ?? [];
+      for (const [i, field] of fields.entries()) {
+        await page
+          .locator("form input[type='text'], form input:not([type])")
+          .nth(i)
+          .fill(String(parts[field.id]));
+      }
+      return "boxes";
+    }
+    default: {
+      // one box; a list ("2, 4, 6") is typed as the child would type it
+      const text = Array.isArray(answer) ? answer.join(", ") : String(answer);
+      await page.getByLabel("Your answer", { exact: true }).fill(text);
+      return "typed";
+    }
   }
-  // several boxes, in the order of the question's answer fields
-  const fields = question.answerFields ?? [];
-  for (const [i, field] of fields.entries()) {
-    await page
-      .locator("form input[type='text'], form input:not([type])")
-      .nth(i)
-      .fill(String(answer[field.id]));
-  }
-  return "boxes";
 }
 
 /** The names the screen gives the main buttons. */
