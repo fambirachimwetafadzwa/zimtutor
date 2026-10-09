@@ -33,7 +33,7 @@ export function GradePicker({ current }: { current?: number }) {
           ))}
         </div>
       </fieldset>
-      <FormMessage error={state.error} />
+      <FormMessage error={state.error} signal={state} />
       <SubmitButton pendingLabel="Saving…">Continue</SubmitButton>
     </form>
   );

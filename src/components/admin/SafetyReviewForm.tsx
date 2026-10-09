@@ -41,7 +41,7 @@ export function SafetyReviewForm({
         hint="Do not write the child's name, contact details or anything else that identifies them."
         maxLength={1000}
       />
-      <FormMessage error={state.error} message={state.message} />
+      <FormMessage error={state.error} message={state.message} signal={state} />
       <SubmitButton pendingLabel="Saving…">
         {current ? "Change my decision" : "Save my decision"}
       </SubmitButton>

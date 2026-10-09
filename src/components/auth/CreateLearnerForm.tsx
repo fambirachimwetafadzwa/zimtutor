@@ -68,7 +68,7 @@ export function CreateLearnerForm() {
           </p>
         ) : null}
       </fieldset>
-      <FormMessage error={state.error} />
+      <FormMessage error={state.error} signal={state} />
       <SubmitButton pendingLabel="Creating…">Create learner account</SubmitButton>
     </form>
   );

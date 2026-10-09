@@ -10,7 +10,7 @@ const initial: FormState = {};
 export function SignUpForm() {
   const [state, formAction] = useActionState(signUpAction, initial);
   const errors = state.fieldErrors ?? {};
-  if (state.ok) return <FormMessage message={state.message} />;
+  if (state.ok) return <FormMessage message={state.message} signal={state} />;
   return (
     <form action={formAction} className="flex flex-col gap-5" noValidate>
       <Field
@@ -57,7 +57,7 @@ export function SignUpForm() {
           </p>
         ) : null}
       </div>
-      <FormMessage error={state.error} />
+      <FormMessage error={state.error} signal={state} />
       <SubmitButton pendingLabel="Creating account…">Create parent account</SubmitButton>
     </form>
   );

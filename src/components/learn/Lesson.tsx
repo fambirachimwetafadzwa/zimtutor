@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { lessonAction, startLessonAction } from "@/app/actions/tutor";
+import { useRevealed } from "@/components/ui/useRevealed";
 import { keepNumbersTogether } from "@/lib/format";
 import type { LearnerAnswer } from "@/lib/marking/spec";
 import type { TutorAction } from "@/lib/tutor/actions";
@@ -111,15 +112,30 @@ export function Lesson({
     });
   };
 
-  const run = (action: TutorAction) => {
+  /** `onDone` runs only if the step worked: what a child typed is kept when it did not. */
+  const run = (action: TutorAction, onDone?: () => void) => {
     if (!view || pending) return;
     setError(null);
     startTransition(async () => {
       const result = await lessonAction({ sessionId: view.sessionId, action });
-      if (result.ok) apply(result.view);
-      else setError(result.error);
+      if (result.ok) {
+        apply(result.view);
+        onDone?.();
+      } else setError(result.error);
     });
   };
+
+  // a problem is shown beside the controls the child is using, and brought into view if it is not
+  const errorRef = useRevealed<HTMLParagraphElement>(error !== null);
+  const errorNote = error ? (
+    <p
+      ref={errorRef}
+      role="alert"
+      className="rounded-xl border border-red-300 bg-red-50 p-4 text-lg text-red-900"
+    >
+      {error}
+    </p>
+  ) : null;
 
   const header = (
     <header className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5">
@@ -141,14 +157,7 @@ export function Lesson({
     return (
       <div className="flex flex-col gap-6">
         {header}
-        {error ? (
-          <p
-            role="alert"
-            className="rounded-xl border border-red-300 bg-red-50 p-4 text-lg text-red-900"
-          >
-            {error}
-          </p>
-        ) : null}
+        {errorNote}
         <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5">
           <p className="text-lg">
             Ready to learn this? ZimTutor will explain it, show you an example, and then ask you
@@ -180,20 +189,12 @@ export function Lesson({
 
       <Messages view={view} />
 
-      {error ? (
-        <p
-          role="alert"
-          className="rounded-xl border border-red-300 bg-red-50 p-4 text-lg text-red-900"
-        >
-          {error}
-        </p>
-      ) : null}
-
       {view.status === "ACTIVE" ? (
         <section
           aria-label="What to do next"
           className="flex flex-col gap-4 rounded-2xl border-2 border-brand/40 bg-surface p-5"
         >
+          {errorNote}
           {can("CONTINUE") ? (
             <div className="flex flex-wrap gap-3">
               <button
@@ -317,8 +318,7 @@ export function Lesson({
                   e.preventDefault();
                   const text = question.trim();
                   if (!text) return;
-                  setQuestion("");
-                  run({ type: "ASK", text });
+                  run({ type: "ASK", text }, () => setQuestion(""));
                 }}
               >
                 <label htmlFor={askId} className="text-base">
@@ -349,6 +349,7 @@ export function Lesson({
           aria-label="Lesson finished"
           className="flex flex-col gap-4 rounded-2xl border-2 border-brand/40 bg-surface p-5"
         >
+          {errorNote}
           <h2 className="text-xl font-bold">That lesson is finished</h2>
           <p className="text-lg">
             You answered {view.progress.resolved}{" "}

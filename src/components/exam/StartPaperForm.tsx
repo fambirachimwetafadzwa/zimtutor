@@ -51,7 +51,7 @@ export function StartPaperForm({ choices }: { choices: readonly PaperChoice[] })
           </li>
         ))}
       </ul>
-      <FormMessage error={state.error} />
+      <FormMessage error={state.error} signal={state} />
       {pending ? (
         <p role="status" className="text-base text-muted">
           Putting your paper together…

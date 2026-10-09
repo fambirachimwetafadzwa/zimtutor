@@ -65,7 +65,7 @@ export function AddSupplementalForm({
         errors={errors}
         defaults={submittedLabel(state.values)}
       />
-      <FormMessage error={state.error} message={state.message} />
+      <FormMessage error={state.error} message={state.message} signal={state} />
       <SubmitButton pendingLabel="Saving…">Save with this label</SubmitButton>
     </form>
   );
@@ -121,7 +121,7 @@ export function RelabelForm({
         error={errors.reason}
         maxLength={500}
       />
-      <FormMessage error={state.error} message={state.message} />
+      <FormMessage error={state.error} message={state.message} signal={state} />
       <SubmitButton pendingLabel="Saving…">Change label</SubmitButton>
     </form>
   );

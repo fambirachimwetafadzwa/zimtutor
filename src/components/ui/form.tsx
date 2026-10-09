@@ -8,6 +8,7 @@ import type {
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
+import { useRevealed } from "./useRevealed";
 
 /** Submit button that disables itself while the Server Action runs (prevents double submits). */
 export function SubmitButton({
@@ -74,10 +75,24 @@ export function Field({
   );
 }
 
-export function FormMessage({ error, message }: { error?: string; message?: string }) {
+/**
+ * What a form has to say after it was sent. It is brought into view if it appeared out of sight;
+ * pass `signal` (the form's state) so that a message that comes up again is shown again.
+ */
+export function FormMessage({
+  error,
+  message,
+  signal,
+}: {
+  error?: string;
+  message?: string;
+  signal?: unknown;
+}) {
+  const ref = useRevealed<HTMLParagraphElement>(Boolean(error || message), signal);
   if (!error && !message) return null;
   return (
     <p
+      ref={ref}
       role={error ? "alert" : "status"}
       className={`rounded-xl border px-4 py-3 text-base ${
         error
