@@ -1,5 +1,10 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { expect, test, type Page } from "@playwright/test";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { LIMITS, type Bucket } from "../../src/lib/ratelimit/policy";
+import { rateLimitSecret } from "../../src/lib/ratelimit/secret";
+import { subjectHash } from "../../src/lib/ratelimit/subject";
 
 /** Shared helpers for the browser tests. Users are created through the real UI wherever possible. */
 
@@ -100,4 +105,79 @@ export async function signUpAdmin(page: Page, label: string) {
   await page.goto("/admin");
   await expect(page).toHaveURL(/\/admin/);
   return email;
+}
+
+/** The id of a learner account, by the username it was made with. */
+export async function learnerIdOf(username: string): Promise<string> {
+  const { data, error } = await serviceClient()
+    .from("learner_profiles")
+    .select("profile_id")
+    .eq("username", username)
+    .single();
+  if (error || !data) throw new Error(`no learner ${username}: ${error?.message}`);
+  return data.profile_id as string;
+}
+
+/** What the server stores for a thing it counts: the same keyed hash it makes (with the same secret). */
+function limitHash(bucket: Bucket, subject: string): string {
+  return subjectHash(
+    rateLimitSecret({
+      rateLimitSecret: process.env.RATE_LIMIT_SECRET || undefined,
+      supabaseServiceRoleKey: process.env.INTEGRATION_SUPABASE_SERVICE_ROLE_KEY!,
+    }),
+    bucket,
+    subject,
+  );
+}
+
+/**
+ * Use up a limit for someone, as a great many fast clicks would, without the clicks.
+ */
+export async function useUpLimit(bucket: Bucket, subject: string, hits = LIMITS[bucket].max) {
+  const { max, seconds } = LIMITS[bucket];
+  // not on the edge of a window: the count must still be there when the browser comes
+  const left = seconds - ((Date.now() / 1000) % seconds);
+  if (left < 10) await new Promise((resolve) => setTimeout(resolve, (left + 1) * 1000));
+  const hash = limitHash(bucket, subject);
+  const service = serviceClient();
+  for (let done = 0; done < hits; done += 25) {
+    const batch = await Promise.all(
+      Array.from({ length: Math.min(25, hits - done) }, () =>
+        service.rpc("rate_limit_hit", {
+          p_bucket: bucket,
+          p_subject: hash,
+          p_limit: max,
+          p_window_seconds: seconds,
+        }),
+      ),
+    );
+    for (const { error } of batch) if (error) throw error;
+  }
+}
+
+/** How many hits are counted now for someone (in the current window), without adding one. */
+export async function limitCount(bucket: Bucket, subject: string): Promise<number> {
+  const { max, seconds } = LIMITS[bucket];
+  const { data, error } = await serviceClient().rpc("rate_limit_peek", {
+    p_bucket: bucket,
+    p_subject: limitHash(bucket, subject),
+    p_limit: max,
+    p_window_seconds: seconds,
+  });
+  if (error) throw error;
+  return (data as Array<{ hits: number }>)[0]!.hits;
+}
+
+/**
+ * A screenshot for the test report; with E2E_SCREENSHOTS=<folder> it is also saved there, so that
+ * how a screen looks can be seen without running the app.
+ */
+export async function snap(page: Page, testInfo: TestInfo, name: string, fullPage = false) {
+  const body = await page.screenshot({ fullPage });
+  await testInfo.attach(`${testInfo.project.name}-${name}`, { body, contentType: "image/png" });
+  const folder = process.env.E2E_SCREENSHOTS;
+  if (folder) {
+    await mkdir(folder, { recursive: true });
+    await writeFile(path.join(folder, `${testInfo.project.name}-${name}.png`), body);
+  }
 }

@@ -15,6 +15,8 @@ import { createSupabaseProvisioningPorts } from "@/lib/auth/learners.server";
 import { safeRedirectPath } from "@/lib/auth/redirects";
 import { requireRole } from "@/lib/auth/session";
 import { fieldErrorsFrom, formString, submittedValues, type FormState } from "@/lib/forms";
+import { refusalFor } from "@/lib/ratelimit/policy";
+import { createRateLimiter, refusal, requestAddress } from "@/lib/ratelimit/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // One message for every sign-in failure: never reveal whether the username/email exists.
@@ -44,9 +46,31 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
     password = parsed.data.password;
   }
 
+  // Wrong guesses at one account are limited (the count is made before the attempt, so a crowd of
+  // simultaneous guesses cannot all slip through); a place that has already failed a great many times
+  // is turned away. A good sign-in clears the account's count. Only FAILURES count against a place:
+  // a class signing in from one school's connection is not an attack.
+  const limiter = createRateLimiter();
+  const address = await requestAddress();
+  const account = `${mode}:${email}`;
+  if (address) {
+    const place = await limiter.peek("login.address", address);
+    if (!place.allowed) return { error: place.message, values: submittedValues(formData) };
+  }
+  const counted = await limiter.hit("login.account", account);
+  if (!counted.allowed) return { error: counted.message, values: submittedValues(formData) };
+
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: SIGN_IN_FAILED, values: submittedValues(formData) };
+  if (error) {
+    if (address) await limiter.hit("login.address", address);
+    return {
+      // the sign-in service has limits of its own
+      error: error.status === 429 ? refusalFor("login.account", 300) : SIGN_IN_FAILED,
+      values: submittedValues(formData),
+    };
+  }
+  await limiter.clear("login.account", account);
 
   redirect(next); // outside any try/catch: redirect() works by throwing
 }
@@ -60,6 +84,12 @@ export async function signUpAction(_previous: FormState, formData: FormData): Pr
   });
   if (!parsed.success) {
     return { fieldErrors: fieldErrorsFrom(parsed.error), values: submittedValues(formData) };
+  }
+
+  const address = await requestAddress();
+  if (address) {
+    const tooMany = await refusal("signup.address", address);
+    if (tooMany) return { error: tooMany, values: submittedValues(formData) };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -131,6 +161,9 @@ export async function createLearnerAction(
   if (!parsed.success) {
     return { fieldErrors: fieldErrorsFrom(parsed.error), values: submittedValues(formData) };
   }
+
+  const tooMany = await refusal("learner.create", parent.id);
+  if (tooMany) return { error: tooMany, values: submittedValues(formData) };
 
   const result = await provisionLearner(
     createSupabaseProvisioningPorts(),

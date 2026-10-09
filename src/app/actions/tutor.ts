@@ -7,6 +7,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { logError } from "@/lib/log";
 import { tutorActionSchema } from "@/lib/tutor/actions";
 import { act, startOrResume, TutorError } from "@/lib/tutor/service";
+import { refusal } from "@/lib/ratelimit/server";
 import { createTutorDeps } from "@/lib/tutor/server";
 import { LESSON_MODES } from "@/lib/tutor/state";
 import type { TutorView } from "@/lib/tutor/view";
@@ -52,6 +53,8 @@ export async function startLessonAction(input: unknown): Promise<LessonResult> {
   const user = await requireRole("student", "/student");
   const parsed = startSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "That lesson link is not right." };
+  const slowDown = await refusal("tutor.start", user.id);
+  if (slowDown) return { ok: false, error: slowDown };
   try {
     const deps = createTutorDeps();
     // A learner works on the goals of their own grade and the grades before it, never ahead.
@@ -75,6 +78,12 @@ export async function lessonAction(input: unknown): Promise<LessonResult> {
   const user = await requireRole("student", "/student");
   const parsed = stepSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "That did not look right. Please try again." };
+  // a child's own question may be put to a model, so it has limits of its own (a minute, and a day)
+  const asking = parsed.data.action.type === "ASK";
+  const slowDown =
+    (await refusal(asking ? "tutor.ask" : "tutor.step", user.id)) ??
+    (asking ? await refusal("tutor.ask.day", user.id) : null);
+  if (slowDown) return { ok: false, error: slowDown };
   try {
     const view = await act(createTutorDeps(), { learnerId: user.id, ...parsed.data });
     return { ok: true, view };

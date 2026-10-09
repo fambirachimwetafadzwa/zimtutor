@@ -6,6 +6,8 @@ import { requireRole } from "@/lib/auth/session";
 import { ExamError, finishPaper, saveAnswer, startPaper, type PaperView } from "@/lib/exam/service";
 import { createExamDeps } from "@/lib/exam/server";
 import { logError } from "@/lib/log";
+import { getMonitor, later } from "@/lib/monitoring";
+import { refusal } from "@/lib/ratelimit/server";
 import type { FormState } from "@/lib/forms";
 import type { LearnerAnswer } from "@/lib/marking/spec";
 
@@ -53,12 +55,21 @@ export async function startPaperAction(
   const [paperNumber, length] = String(formData.get("start") ?? "").split(":");
   const parsed = startSchema.safeParse({ paperNumber, length });
   if (!parsed.success) return { error: "Choose a paper." };
+  const slowDown = await refusal("exam.start", user.id);
+  if (slowDown) return { error: slowDown };
   let id: string;
   try {
     id = await startPaper(createExamDeps(), { learnerId: user.id, ...parsed.data });
   } catch (error) {
     return { error: friendly(error) };
   }
+  later(
+    getMonitor().track({
+      name: "paper_started",
+      paper: parsed.data.paperNumber,
+      length: parsed.data.length,
+    }),
+  );
   redirect(`/student/exams/${id}`);
 }
 
@@ -74,6 +85,8 @@ export async function saveAnswerAction(input: unknown): Promise<SaveResult> {
   const user = await requireRole("student", "/student/exams");
   const parsed = saveSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "That answer could not be saved." };
+  const slowDown = await refusal("exam.save", user.id);
+  if (slowDown) return { ok: false, error: slowDown };
   try {
     await saveAnswer(createExamDeps(), { learnerId: user.id, ...parsed.data });
     return { ok: true };
@@ -88,11 +101,23 @@ export async function finishPaperAction(input: unknown): Promise<FinishResult> {
   const user = await requireRole("student", "/student/exams");
   const parsed = z.object({ setId: z.uuid() }).safeParse(input);
   if (!parsed.success) return { ok: false, error: "That paper could not be found." };
+  const slowDown = await refusal("exam.finish", user.id);
+  if (slowDown) return { ok: false, error: slowDown };
   try {
-    return {
-      ok: true,
-      view: await finishPaper(createExamDeps(), { learnerId: user.id, setId: parsed.data.setId }),
-    };
+    const view = await finishPaper(createExamDeps(), {
+      learnerId: user.id,
+      setId: parsed.data.setId,
+    });
+    later(
+      getMonitor().track({
+        name: "paper_finished",
+        paper: view.paperNumber,
+        length: view.length,
+        answered: view.answered,
+        of: view.total,
+      }),
+    );
+    return { ok: true, view };
   } catch (error) {
     return { ok: false, error: friendly(error) };
   }

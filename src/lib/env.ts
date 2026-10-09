@@ -40,6 +40,11 @@ const serverSchema = z.object({
   embeddingModel: z.string(),
   embeddingApiKey: z.string().optional(),
   embeddingBaseUrl: z.string().optional(),
+  rateLimitSecret: z.string().min(16).optional(),
+  clientIpHeader: z
+    .string()
+    .regex(/^[a-z][a-z0-9-]*$/)
+    .optional(),
 });
 
 export type PublicEnv = z.infer<typeof publicSchema>;
@@ -68,6 +73,8 @@ const serverNames: Record<string, string> = {
   aiEffort: "AI_EFFORT (low, medium, high, xhigh or max)",
   embeddingProvider: "EMBEDDING_PROVIDER",
   embeddingModel: "EMBEDDING_MODEL",
+  rateLimitSecret: "RATE_LIMIT_SECRET (at least 16 characters)",
+  clientIpHeader: "CLIENT_IP_HEADER (a header name such as x-forwarded-for)",
 };
 
 /**
@@ -117,6 +124,8 @@ export function readServerEnv(): ServerEnv {
     embeddingModel: blankToUndefined(e.EMBEDDING_MODEL) ?? "text-embedding-3-small",
     embeddingApiKey: blankToUndefined(e.EMBEDDING_API_KEY),
     embeddingBaseUrl: blankToUndefined(e.EMBEDDING_BASE_URL),
+    rateLimitSecret: blankToUndefined(e.RATE_LIMIT_SECRET),
+    clientIpHeader: blankToUndefined(e.CLIENT_IP_HEADER)?.toLowerCase(),
   });
   if (!parsed.success) fail("server", parsed.error, serverNames);
 
