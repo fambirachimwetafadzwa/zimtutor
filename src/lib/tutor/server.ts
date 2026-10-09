@@ -4,8 +4,10 @@ import { llmProviderFromEnv } from "@/lib/ai/llm/factory";
 import { helplineFromSettings } from "@/lib/ai/safety";
 import { readServerEnv } from "@/lib/env";
 import { logEvent } from "@/lib/log";
+import { getMonitor, later } from "@/lib/monitoring";
 import { SupabaseBankStore } from "@/lib/questions/bank";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { analyticsForTutor, analyticsForVoice } from "./analytics";
 import { createRetriever, SupabaseSearchPort } from "./retrieval";
 import type { TutorDeps } from "./service";
 import { SupabaseCurriculumPort } from "./supabase-curriculum";
@@ -27,7 +29,11 @@ function voiceFor(env: ReturnType<typeof readServerEnv>): TutorVoice {
   if (sharedVoice?.key === key) return sharedVoice.voice;
   const voice = createVoice({
     provider: env.aiProvider === "mock" ? null : llmProviderFromEnv(env),
-    onEvent: (event) => logEvent("voice", event as unknown as Record<string, unknown>),
+    onEvent: (event) => {
+      logEvent("voice", event as unknown as Record<string, unknown>);
+      const counted = analyticsForVoice(event);
+      if (counted) later(getMonitor().track(counted));
+    },
   });
   sharedVoice = { key, voice };
   return voice;
@@ -46,6 +52,10 @@ export function createTutorDeps(): TutorDeps {
       name: env.childHelplineName,
       number: env.childHelplineNumber,
     }),
-    onEvent: (event) => logEvent("tutor", event as unknown as Record<string, unknown>),
+    onEvent: (event) => {
+      logEvent("tutor", event as unknown as Record<string, unknown>);
+      const counted = analyticsForTutor(event);
+      if (counted) later(getMonitor().track(counted));
+    },
   };
 }

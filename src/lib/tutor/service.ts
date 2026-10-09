@@ -111,7 +111,7 @@ export type TutorEvent =
       stateAfter: string;
     }
   | { type: "message_screened"; categories: string[]; flagged: boolean }
-  | { type: "session_ended"; by: SessionSummary["endedBy"] };
+  | { type: "session_ended"; by: SessionSummary["endedBy"]; questions: number; firstTry: number };
 
 export interface TutorDeps {
   store: TutorStore;
@@ -530,7 +530,7 @@ async function finish(ctx: Ctx, step: Step, endedBy: SessionSummary["endedBy"]):
     masteryEnd: latest ? { score: latest.masteryScore, state: deriveState(latest, now) } : null,
     endedBy,
   };
-  emit(deps, { type: "session_ended", by: endedBy });
+  emit(deps, { type: "session_ended", by: endedBy, questions: s.resolved, firstTry: s.firstTry });
 }
 
 // ── actions ─────────────────────────────────────────────────────────────────────────────────────
