@@ -37,3 +37,5 @@ jobs:
       - run: npm run curriculum:validate
       - run: npm run test
       - run: npm run build
+      # What the browser is sent must hold no secret and no server-only code (skipped before a build).
+      - run: npx vitest run tests/security/bundle.test.ts

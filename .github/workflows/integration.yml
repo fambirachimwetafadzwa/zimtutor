@@ -1,9 +1,10 @@
-name: Integration (Supabase stack)
+name: Integration and browser tests (Supabase stack)
 
-# Runs the API-level security and account tests against a real Supabase stack started with the
-# Supabase CLI. Manual for now: the same tests were verified against Supabase Auth (GoTrue) and
-# PostgREST run directly, but this CLI-based job has not been exercised yet. Run it once from the
-# Actions tab; if it passes, change the trigger to `push`/`pull_request`.
+# Runs the API-level security and account tests, and then the browser tests, against a real Supabase
+# stack started with the Supabase CLI. Manual for now: the same tests were verified against Supabase
+# Auth (GoTrue) and PostgREST run directly behind a small gateway, but this CLI-based job (and its
+# browser steps) has not been exercised on GitHub yet. Run it once from the Actions tab; if it passes,
+# change the trigger to `push`/`pull_request`.
 on:
   workflow_dispatch:
 
@@ -22,11 +23,52 @@ jobs:
       - run: npm ci
       - name: Start Supabase (applies supabase/migrations)
         run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,realtime
-      - name: Load the curriculum and run the integration tests
+      - name: Load the curriculum, the retrieval chunks and the practice questions
         run: |
           eval "$(supabase status -o env)"
-          DATABASE_URL="$DB_URL" npm run curriculum:load
+          export DATABASE_URL="$DB_URL"
+          npm run curriculum:load
+          npm run curriculum:embed
+          npm run questions:seed
+      - name: API integration tests
+        run: |
+          eval "$(supabase status -o env)"
           INTEGRATION_SUPABASE_URL="$API_URL" \
           INTEGRATION_SUPABASE_ANON_KEY="$ANON_KEY" \
           INTEGRATION_SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
           npx vitest run tests/integration
+      - name: Build the app against that stack
+        run: |
+          eval "$(supabase status -o env)"
+          export NEXT_PUBLIC_SUPABASE_URL="$API_URL" \
+                 NEXT_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY" \
+                 SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+                 NEXT_PUBLIC_SITE_URL=http://localhost:3000 \
+                 AI_PROVIDER=mock
+          npm run build
+      - name: Browser tests (desktop and phone-sized Chromium)
+        run: |
+          eval "$(supabase status -o env)"
+          export NEXT_PUBLIC_SUPABASE_URL="$API_URL" \
+                 NEXT_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY" \
+                 SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+                 NEXT_PUBLIC_SITE_URL=http://localhost:3000 \
+                 AI_PROVIDER=mock \
+                 CLIENT_IP_HEADER=x-e2e-client-address
+          npx playwright install --with-deps chromium
+          (npm start > app.log 2>&1 &)
+          until curl -sf http://localhost:3000/privacy > /dev/null; do sleep 1; done
+          E2E_BASE_URL=http://localhost:3000 \
+          E2E_CLIENT_IP_HEADER=x-e2e-client-address \
+          INTEGRATION_SUPABASE_URL="$API_URL" \
+          INTEGRATION_SUPABASE_ANON_KEY="$ANON_KEY" \
+          INTEGRATION_SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          npm run e2e
+      - name: Keep what a failure leaves behind
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-results
+          path: |
+            test-results/
+            app.log
