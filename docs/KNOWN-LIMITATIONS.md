@@ -140,8 +140,10 @@ about it. Where something is untested, it says so.
   desktop and a phone-sized Chromium) against a production build; a real fault, in a real server,
   reaching a stand-in for Sentry scrubbed. The database and API suites ran against PostgreSQL 16 with
   `pgvector`, Supabase Auth (GoTrue) and PostgREST run directly and put behind a small gateway.
-- **Not verified**: the Supabase CLI based GitHub Actions workflow (`integration.yml`) has not run on
-  GitHub; Vercel deployment has not been done; no load or soak testing; no test with a live language
+- **Not verified**: `supabase start` (the route the README's "Try it on your own computer" uses) and
+  the GitHub Actions workflow built on it (`integration.yml`) have not been run, because the machine
+  ZimTutor was built on could not download the Supabase container images; Vercel deployment has not
+  been done; no load or soak testing; no test with a live language
   model or embedding provider; no test by children, parents or teachers.
 - **The database tests create and drop their own databases** and need a superuser: never point
   `TEST_DATABASE_URL` at anything that matters.

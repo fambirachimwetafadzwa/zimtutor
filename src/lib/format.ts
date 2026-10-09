@@ -13,12 +13,28 @@ export function keepNumbersTogether(text: string): string {
 
 /** "8 Oct": a day as people in Zimbabwe write it, whatever time zone the server runs in. */
 export function formatDay(iso: string | null): string {
+  return formatIn({ day: "numeric", month: "short" }, iso);
+}
+
+/** "8 Oct 2026": a date in Zimbabwe, whatever time zone the server runs in. */
+export function formatDate(iso: string | null): string {
+  return formatIn({ day: "numeric", month: "short", year: "numeric" }, iso);
+}
+
+/**
+ * "8 Oct 2026, 11:17": a moment in Zimbabwe time (UTC+2, no daylight saving). Screens that show
+ * the same moment must show the same time, so none of them may leave the zone to the server.
+ */
+export function formatDateTime(iso: string | null): string {
+  return formatIn(
+    { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" },
+    iso,
+  );
+}
+
+function formatIn(options: Intl.DateTimeFormatOptions, iso: string | null): string {
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "numeric",
-    month: "short",
-    timeZone: "Africa/Harare",
-  }).format(date);
+  return new Intl.DateTimeFormat("en-GB", { ...options, timeZone: "Africa/Harare" }).format(date);
 }

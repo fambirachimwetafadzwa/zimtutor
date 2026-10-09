@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RelabelForm } from "@/components/admin/SupplementalForms";
 import { SourceTypeBadge, StatusBadge } from "@/components/curriculum/Badges";
+import { formatDate } from "@/lib/format";
 import { KIND_LABELS, type Kind } from "@/lib/supplemental/rules";
 import type { SupplementalItem } from "@/lib/supplemental/service";
 
@@ -34,7 +35,7 @@ export function SupplementalCard({
         </p>
       ) : null}
       <p className="text-sm text-muted">
-        Added {new Date(item.created_at).toLocaleDateString("en-GB")}
+        Added {formatDate(item.created_at)}
         {showObjectiveLink && item.objective_id ? (
           <>
             {" "}

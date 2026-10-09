@@ -2,6 +2,7 @@ import { Breadcrumbs } from "@/components/curriculum/Breadcrumbs";
 import { AppPage } from "@/components/layout/PageShell";
 import { SafetyReviewForm } from "@/components/admin/SafetyReviewForm";
 import { requireRole } from "@/lib/auth/session";
+import { formatDateTime } from "@/lib/format";
 import { listFlagged } from "@/lib/safety/review";
 import { CATEGORY_LABELS, OUTCOME_LABELS, countFlagged } from "@/lib/safety/rules";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -68,8 +69,7 @@ export default async function SafetyPage() {
                 ))}
                 <span className="text-muted">
                   {item.learnerName}
-                  {item.grade ? ` · Grade ${item.grade}` : ""} ·{" "}
-                  {new Date(item.at).toLocaleString("en-GB", { timeZone: "Africa/Harare" })}
+                  {item.grade ? ` · Grade ${item.grade}` : ""} · {formatDateTime(item.at)}
                 </span>
               </div>
               <blockquote className="whitespace-pre-line rounded-xl border-l-4 border-border bg-background p-4 text-lg">

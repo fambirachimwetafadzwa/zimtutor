@@ -47,11 +47,54 @@ npm run db:migrate                # schema, constraints, row-level security
 npm run curriculum:load           # the syllabus: 5 grades · 20 topics · 142 sub-topics · 444 objectives
 npm run curriculum:embed          # retrieval embeddings (offline `local-hash` by default)
 npm run curriculum:audit -- --snapshot --require-embeddings
+npm run questions:seed            # the practice-question bank (without it a lesson has no questions)
 npm run dev
 ```
 
 The first administrator signs up like a parent, then is promoted out-of-band (roles can never be
 chosen from the browser): `npm run admin:promote -- you@example.com`.
+
+### Try it on your own computer
+
+You need [Node](https://nodejs.org) 22.13 or newer, [Docker](https://docs.docker.com/get-docker/)
+(running) and the [Supabase CLI](https://supabase.com/docs/guides/local-development). Everything runs
+on your machine: no account and no API key are needed (`AI_PROVIDER=mock`, the default, uses no AI
+model at all).
+
+```bash
+npm ci
+supabase start                    # the first run downloads the container images, which takes a while
+supabase status                   # prints the API URL and the keys used below
+cp .env.example .env.local
+```
+
+Put two of the keys `supabase status` prints into `.env.local`: the _anon_ (or _publishable_) key as
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` (or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) and the _service_role_ (or
+_secret_) key as `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SECRET_KEY`). The URL and `DATABASE_URL`
+already in the file match the local stack.
+
+```bash
+npm run db:migrate                # nothing to do if `supabase start` has already applied them
+npm run curriculum:load
+npm run curriculum:embed
+npm run questions:seed
+npm run dev                       # then open http://localhost:3000
+```
+
+In the browser:
+
+1. **I'm a parent or guardian** → create an account (email confirmation is off locally, so no email
+   is sent).
+2. **Add a learner**: a name, a username, a password and a grade. Sign out, choose **I'm a learner**
+   and sign in with that username to see what a child sees (lessons, the progress page and the
+   practice papers).
+3. For the administration screens, sign up a second parent account that has no learners, run
+   `npm run admin:promote -- that-address@example.com`, and sign in again.
+
+**What was and was not run.** The app, the migrations, the loaders and each step above were run
+against PostgreSQL 16 with `pgvector`, Supabase Auth and PostgREST started directly, not through the
+Supabase CLI. `supabase start` itself, and `.github/workflows/integration.yml`, which uses it, have
+not been run. If one of those steps fails, the error message is the thing to report.
 
 ## Commands
 

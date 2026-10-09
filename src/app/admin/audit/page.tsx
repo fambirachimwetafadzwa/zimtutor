@@ -1,6 +1,7 @@
 import { AppPage } from "@/components/layout/PageShell";
 import { Breadcrumbs } from "@/components/curriculum/Breadcrumbs";
 import { requireRole } from "@/lib/auth/session";
+import { formatDateTime } from "@/lib/format";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { listAuditLog } from "@/lib/supplemental/service";
 
@@ -27,7 +28,7 @@ export default async function AuditPage() {
       <h1 className="text-3xl font-bold tracking-tight">Audit log</h1>
       <p className="text-lg text-muted">
         Every change an administrator makes to labelled content, with the state before and after.
-        Entries cannot be edited or deleted from the application.
+        Entries cannot be edited or deleted from the application. Times are Zimbabwe time (UTC+2).
       </p>
       {entries.length === 0 ? (
         <p className="rounded-2xl border border-border bg-surface p-6 text-lg">
@@ -39,8 +40,7 @@ export default async function AuditPage() {
             <li key={e.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
               <p className="font-semibold">{ACTION_LABELS[e.action] ?? e.action}</p>
               <p className="text-sm text-muted">
-                {new Date(e.created_at).toLocaleString("en-GB")} · {e.entity_type}{" "}
-                <code>{e.entity_id}</code>
+                {formatDateTime(e.created_at)} · {e.entity_type} <code>{e.entity_id}</code>
               </p>
               <details className="mt-2">
                 <summary className="min-h-11 cursor-pointer text-base">

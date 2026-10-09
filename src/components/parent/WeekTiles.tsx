@@ -8,7 +8,7 @@ export function WeekTiles({ week }: { week: WeekSummary }) {
       value: String(week.lessons),
     },
     { label: week.days === 1 ? "Day practised" : "Days practised", value: String(week.days) },
-    { label: "Minutes", value: String(week.minutes) },
+    { label: week.minutes === 1 ? "Minute" : "Minutes", value: String(week.minutes) },
     {
       label: "Right at the first try",
       value: week.firstTryPercent === null ? "–" : `${week.firstTryPercent}%`,
