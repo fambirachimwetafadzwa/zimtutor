@@ -110,6 +110,34 @@ test.describe("content security policy", () => {
     expect(nonces.size).toBe(PUBLIC_PAGES.length);
   });
 
+  test("a page that is not there is a plain, friendly 404 that gives nothing away", async ({
+    page,
+  }) => {
+    const seen = await watch(page);
+    const response = await page.goto("/no-such-page-at-all");
+    expect(response?.status()).toBe(404);
+    expect(response?.headers()["content-security-policy"]).toBeTruthy();
+    await expect(page.getByRole("heading", { name: "We could not find that" })).toBeVisible();
+    await expect(page.locator("body")).not.toContainText(/stack|exception|at \w+ \(|\.tsx?:\d+/i);
+    await seen.clean("the 404 page");
+    await page.getByRole("link", { name: "Go to the start" }).click();
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test("the sign-in cookie cannot be read by a script on the page", async ({ page }) => {
+    await signUpParent(page, "Mrs Tembo", `cookie-${unique()}@example.test`);
+    const cookies = (await page.context().cookies()).filter((cookie) =>
+      cookie.name.startsWith("sb-"),
+    );
+    expect(cookies.length, "no session cookie was set").toBeGreaterThan(0);
+    for (const cookie of cookies) {
+      expect(cookie.httpOnly, `${cookie.name} is readable by scripts`).toBe(true);
+      expect(cookie.sameSite, cookie.name).toBe("Lax");
+    }
+    // and so a script cannot see them either
+    expect(await page.evaluate(() => document.cookie)).not.toContain("sb-");
+  });
+
   test("the page is interactive: a link is followed without reloading the document", async ({
     page,
   }) => {

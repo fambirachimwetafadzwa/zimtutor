@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { EnvError, readPublicEnv } from "@/lib/env";
+import { sessionCookieOptions } from "./cookies";
 
 export interface SessionUpdate {
   /** The response to return (carries any refreshed auth cookies and cache headers). */
@@ -42,6 +43,7 @@ export async function updateSession(
 
   let response = next();
   const supabase = createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
+    cookieOptions: sessionCookieOptions(env.siteUrl),
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (cookiesToSet, headers) => {
