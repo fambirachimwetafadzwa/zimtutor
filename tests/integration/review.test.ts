@@ -248,6 +248,9 @@ describe.skipIf(!configured)("administrator review (real API)", () => {
         .select("action, before_state, after_state")
         .eq("entity_type", "question")
         .eq("entity_id", questionId)
+        // only this run's administrator: the same question may have been reviewed by earlier runs of
+        // this suite, or by the browser tests, against the same database
+        .eq("admin_id", admin.id)
         .order("id");
       expect(audit!.map((a) => a.action)).toEqual([
         "QUESTION_APPROVED",
