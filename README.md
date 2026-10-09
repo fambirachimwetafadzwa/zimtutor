@@ -57,9 +57,10 @@ chosen from the browser): `npm run admin:promote -- you@example.com`.
 ### Try it on your own computer
 
 You need [Node](https://nodejs.org) 22.13 or newer, [Docker](https://docs.docker.com/get-docker/)
-(running) and the [Supabase CLI](https://supabase.com/docs/guides/local-development). Everything runs
-on your machine: no account and no API key are needed (`AI_PROVIDER=mock`, the default, uses no AI
-model at all).
+(running) and the [Supabase CLI](https://supabase.com/docs/guides/local-development); where the steps
+say `supabase`, `npx supabase` does the same without installing anything. Everything runs on your
+machine: no account and no API key are needed (`AI_PROVIDER=mock`, the default, uses no AI model at
+all).
 
 ```bash
 npm ci
